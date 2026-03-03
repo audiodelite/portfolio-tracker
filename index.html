@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FirstWave Portfolio Tracker</title>
+<title>13F Portfolio Tracker — Q4 2025</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -43,16 +43,58 @@ tr:hover{background:rgba(99,102,241,0.08)}
 .hm-ticker{font-size:11px;font-weight:700;margin-bottom:2px}
 .hm-val{font-size:10px;opacity:.85}
 canvas{max-height:320px}
+/* Performance section */
+.period-btns{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.period-btn{background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:10px;padding:8px 18px;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.period-btn:hover{border-color:var(--accent);color:var(--text)}
+.period-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.perf-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:20px}
+.perf-card{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+.perf-card .perf-label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.perf-card .perf-value{font-size:22px;font-weight:700}
+.perf-card .perf-sub{font-size:12px;color:var(--muted);margin-top:4px}
+.refresh-btn{background:rgba(99,102,241,0.2);border:1px solid var(--accent);border-radius:10px;padding:8px 18px;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.refresh-btn:hover{background:var(--accent);color:#fff}
+.refresh-btn:disabled{opacity:.5;cursor:not-allowed}
+.monthly-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px}
+.monthly-table th{background:#12121a;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-size:11px;font-weight:600;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.monthly-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.03)}
+.section-title{font-size:18px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.perf-range{font-size:12px;color:var(--muted);font-weight:400}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>🌊 FirstWave Portfolio Tracker</h1>
+  <h1>📊 13F Portfolio Tracker</h1>
   <div class="timestamp">Q4 2025 Filing · Filed 2026-02-13 · Last updated <span id="ts"></span></div>
 </div>
 
 <div class="summary" id="summary"></div>
+
+<!-- Performance Tracking Section -->
+<div class="card" style="margin-bottom:24px" id="perfSection">
+  <div class="section-title">
+    📈 Performance Tracking
+    <span class="perf-range" id="perfRange">Dec 31, 2025 → Current</span>
+    <button class="refresh-btn" id="refreshBtn" onclick="refreshPrices()" style="margin-left:auto">🔄 Refresh Prices</button>
+  </div>
+  <div class="period-btns">
+    <button class="period-btn active" data-period="inception" onclick="setPeriod('inception')">Since Inception</button>
+    <button class="period-btn" data-period="ytd" onclick="setPeriod('ytd')">YTD</button>
+    <button class="period-btn" data-period="3m" onclick="setPeriod('3m')">3M</button>
+    <button class="period-btn" data-period="1m" onclick="setPeriod('1m')">1M</button>
+  </div>
+  <div class="perf-summary" id="perfSummary"></div>
+  <div class="charts" style="margin-bottom:16px">
+    <div class="card" style="padding:16px"><canvas id="perfChart"></canvas></div>
+    <div class="card" style="padding:16px"><canvas id="topMoversChart"></canvas></div>
+  </div>
+  <div style="overflow-x:auto">
+    <h4 style="margin-bottom:8px;font-size:14px;color:var(--muted)">Monthly Breakdown (Estimated)</h4>
+    <table class="monthly-table" id="monthlyTable"></table>
+  </div>
+</div>
 
 <div class="charts">
   <div class="card"><canvas id="sectorChart"></canvas></div>
@@ -78,6 +120,7 @@ canvas{max-height:320px}
 </div>
 
 <script>
+const INCEPTION_DATE = '2025-12-31';
 const raw = [
 ["ZS","INFORMATION TECHNOLOGY",11563,2600750,1.55,282.822,224.92],
 ["ZETA","INFORMATION TECHNOLOGY",151235,3077632,1.83,19.0298,20.35],
@@ -164,6 +207,10 @@ const positions = raw.map(r => {
 
 const totalValue = positions.reduce((s,p)=>s+p.value,0);
 const numPositions = positions.length;
+const totalCostBasis = positions.reduce((s,p) => s + (p.costBasis !== null ? p.costBasis * p.shares : 0), 0);
+const totalCurrentValue = positions.reduce((s,p) => s + (p.currentPrice !== null ? p.currentPrice * p.shares : 0), 0);
+const totalPL = positions.reduce((s,p) => s + (p.plDollar || 0), 0);
+const totalPLPct = totalCostBasis > 0 ? ((totalCurrentValue - totalCostBasis) / totalCostBasis) * 100 : 0;
 
 // Sector aggregation
 const sectorMap = {};
@@ -177,8 +224,307 @@ document.getElementById('summary').innerHTML = `
   <div class="card"><div class="label">Total Portfolio Value</div><div class="value">$${(totalValue/1e6).toFixed(1)}M</div></div>
   <div class="card"><div class="label">Positions</div><div class="value">${numPositions}</div></div>
   <div class="card"><div class="label">Top Sector</div><div class="value" style="font-size:18px">${topSector[0]}<br><span style="font-size:14px;color:var(--muted)">${(topSector[1]/totalValue*100).toFixed(1)}%</span></div></div>
-  <div class="card"><div class="label">Total Unrealized P/L</div><div class="value ${positions.reduce((s,p)=>s+(p.plDollar||0),0)>=0?'gain':'loss'}">$${(positions.reduce((s,p)=>s+(p.plDollar||0),0)/1e6).toFixed(2)}M</div></div>
+  <div class="card"><div class="label">Total Unrealized P/L</div><div class="value ${totalPL>=0?'gain':'loss'}">$${(totalPL/1e6).toFixed(2)}M</div></div>
 `;
+
+// === PERFORMANCE TRACKING ===
+let currentPeriod = 'inception';
+let perfChart = null;
+let topMoversChart = null;
+
+function getValidPositions() {
+  return positions.filter(p => p.costBasis !== null && p.currentPrice !== null);
+}
+
+// Calculate period-adjusted returns
+// Since inception = Dec 31, 2025, and we only have cost basis (Dec 31) and current prices,
+// for sub-periods we estimate using linear interpolation of the total return
+function getPeriodFraction(period) {
+  const now = new Date();
+  const inception = new Date('2025-12-31');
+  const totalDays = (now - inception) / (1000*60*60*24);
+  if (totalDays <= 0) return 1;
+
+  switch(period) {
+    case 'inception':
+    case 'ytd': // YTD = same as inception since inception is Dec 31
+      return 1;
+    case '3m': {
+      const d = Math.min(90, totalDays);
+      return d / totalDays;
+    }
+    case '1m': {
+      const d = Math.min(30, totalDays);
+      return d / totalDays;
+    }
+    default: return 1;
+  }
+}
+
+function getPeriodLabel(period) {
+  switch(period) {
+    case 'inception': return 'Since Inception (Dec 31, 2025)';
+    case 'ytd': return 'Year to Date (Jan 1, 2026)';
+    case '3m': return 'Last 3 Months';
+    case '1m': return 'Last 1 Month';
+    default: return '';
+  }
+}
+
+function getDaysSinceInception() {
+  return Math.max(1, Math.floor((new Date() - new Date('2025-12-31')) / (1000*60*60*24)));
+}
+
+function setPeriod(period) {
+  currentPeriod = period;
+  document.querySelectorAll('.period-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.period === period);
+  });
+  document.getElementById('perfRange').textContent =
+    period === 'inception' || period === 'ytd'
+      ? 'Dec 31, 2025 → Current'
+      : period === '3m' ? 'Last 3 months (estimated)' : 'Last 1 month (estimated)';
+  renderPerformance();
+}
+window.setPeriod = setPeriod;
+
+function renderPerformance() {
+  const valid = getValidPositions();
+  const frac = getPeriodFraction(currentPeriod);
+  const periodPL = totalPL * frac;
+  const periodPLPct = totalPLPct * frac;
+
+  // Best & worst performers
+  const sorted = [...valid].sort((a,b) => (b.plPct||0) - (a.plPct||0));
+  const best = sorted[0];
+  const worst = sorted[sorted.length - 1];
+
+  document.getElementById('perfSummary').innerHTML = `
+    <div class="perf-card">
+      <div class="perf-label">${getPeriodLabel(currentPeriod)}</div>
+      <div class="perf-value ${periodPL>=0?'gain':'loss'}">${periodPL>=0?'+':''}$${(periodPL/1e6).toFixed(2)}M</div>
+      <div class="perf-sub">${periodPLPct>=0?'+':''}${periodPLPct.toFixed(2)}% return</div>
+    </div>
+    <div class="perf-card">
+      <div class="perf-label">Annualized Return</div>
+      <div class="perf-value ${totalPLPct>=0?'gain':'loss'}">${((totalPLPct / getDaysSinceInception()) * 365).toFixed(1)}%</div>
+      <div class="perf-sub">Based on ${getDaysSinceInception()} days</div>
+    </div>
+    <div class="perf-card">
+      <div class="perf-label">🏆 Best Performer</div>
+      <div class="perf-value gain" style="font-size:18px">${best.ticker}</div>
+      <div class="perf-sub gain">+${(best.plPct * frac).toFixed(1)}% · +$${((best.plDollar * frac)/1e3).toFixed(0)}K</div>
+    </div>
+    <div class="perf-card">
+      <div class="perf-label">📉 Worst Performer</div>
+      <div class="perf-value loss" style="font-size:18px">${worst.ticker}</div>
+      <div class="perf-sub loss">${(worst.plPct * frac).toFixed(1)}% · $${((worst.plDollar * frac)/1e3).toFixed(0)}K</div>
+    </div>
+  `;
+
+  renderPerfChart(frac);
+  renderTopMoversChart(frac);
+  renderMonthlyTable();
+}
+
+function renderPerfChart(frac) {
+  const ctx = document.getElementById('perfChart');
+  if (perfChart) perfChart.destroy();
+
+  // Generate interpolated data points from inception to now
+  const inception = new Date('2025-12-31');
+  const now = new Date();
+  const totalDays = Math.max(1, (now - inception) / (1000*60*60*24));
+  const numPoints = Math.min(Math.ceil(totalDays), 60);
+  const labels = [];
+  const data = [];
+
+  for (let i = 0; i <= numPoints; i++) {
+    const d = new Date(inception.getTime() + (i / numPoints) * (now - inception));
+    labels.push(d.toLocaleDateString('en-US', {month:'short', day:'numeric'}));
+    // Linear interpolation of cumulative P/L
+    const progress = i / numPoints;
+    data.push(totalPL * progress * frac);
+  }
+
+  perfChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Cumulative P/L ($)',
+        data,
+        borderColor: totalPL >= 0 ? '#00d4aa' : '#ff4757',
+        backgroundColor: totalPL >= 0 ? 'rgba(0,212,170,0.1)' : 'rgba(255,71,87,0.1)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 0,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        title: { display: true, text: 'Portfolio P/L Over Time (Interpolated)', color: '#e4e4e7', font: { size: 14 } },
+        legend: { display: false }
+      },
+      scales: {
+        x: { ticks: { color: '#71717a', maxTicksLimit: 8 }, grid: { color: 'rgba(255,255,255,0.04)' } },
+        y: { ticks: { color: '#71717a', callback: v => '$' + (v/1e6).toFixed(2) + 'M' }, grid: { color: 'rgba(255,255,255,0.04)' } }
+      }
+    }
+  });
+}
+
+function renderTopMoversChart(frac) {
+  const ctx = document.getElementById('topMoversChart');
+  if (topMoversChart) topMoversChart.destroy();
+
+  const valid = getValidPositions();
+  const sorted = [...valid].sort((a,b) => Math.abs(b.plDollar) - Math.abs(a.plDollar)).slice(0, 10);
+
+  topMoversChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sorted.map(p => p.ticker),
+      datasets: [{
+        label: 'P/L ($)',
+        data: sorted.map(p => p.plDollar * frac),
+        backgroundColor: sorted.map(p => p.plDollar >= 0 ? 'rgba(0,212,170,0.7)' : 'rgba(255,71,87,0.7)'),
+        borderRadius: 6
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: {
+        title: { display: true, text: 'Top 10 P/L Contributors', color: '#e4e4e7', font: { size: 14 } },
+        legend: { display: false }
+      },
+      scales: {
+        x: { ticks: { color: '#71717a', callback: v => (v>=0?'+':'') + '$' + (v/1e3).toFixed(0) + 'K' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+        y: { ticks: { color: '#e4e4e7' }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+function renderMonthlyTable() {
+  const inception = new Date('2025-12-31');
+  const now = new Date();
+  const months = [];
+  let d = new Date(inception);
+  d.setDate(1); d.setMonth(d.getMonth() + 1); // Start at Jan 2026
+
+  while (d <= now) {
+    const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+    const isCurrentMonth = d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    const endDate = isCurrentMonth ? now : monthEnd;
+
+    // Days in this month relative to inception
+    const startDays = Math.max(0, (d - inception) / (1000*60*60*24));
+    const endDays = (endDate - inception) / (1000*60*60*24);
+    const totalDays = Math.max(1, (now - inception) / (1000*60*60*24));
+
+    const monthPL = totalPL * (endDays - startDays) / totalDays;
+    const monthPLPct = totalPLPct * (endDays - startDays) / totalDays;
+
+    months.push({
+      label: d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+      pl: monthPL,
+      plPct: monthPLPct,
+      status: isCurrentMonth ? '⏳ In Progress' : '✅ Complete'
+    });
+
+    d.setMonth(d.getMonth() + 1);
+  }
+
+  const tbl = document.getElementById('monthlyTable');
+  tbl.innerHTML = `
+    <thead><tr><th>Month</th><th>Est. P/L ($)</th><th>Est. Return (%)</th><th>Status</th></tr></thead>
+    <tbody>${months.map(m => `
+      <tr>
+        <td>${m.label}</td>
+        <td class="${m.pl>=0?'gain':'loss'}">${m.pl>=0?'+':''}$${(m.pl/1e3).toFixed(0)}K</td>
+        <td class="${m.plPct>=0?'gain':'loss'}">${m.plPct>=0?'+':''}${m.plPct.toFixed(2)}%</td>
+        <td style="color:var(--muted)">${m.status}</td>
+      </tr>
+    `).join('')}
+    <tr style="font-weight:700;border-top:2px solid var(--border)">
+      <td>Total</td>
+      <td class="${totalPL>=0?'gain':'loss'}">${totalPL>=0?'+':''}$${(totalPL/1e3).toFixed(0)}K</td>
+      <td class="${totalPLPct>=0?'gain':'loss'}">${totalPLPct>=0?'+':''}${totalPLPct.toFixed(2)}%</td>
+      <td style="color:var(--muted)">Dec 31, 2025 → Now</td>
+    </tr>
+    </tbody>
+  `;
+}
+
+// Refresh prices via CORS proxy + Yahoo Finance
+async function refreshPrices() {
+  const btn = document.getElementById('refreshBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Refreshing…';
+
+  const tickers = positions.filter(p => p.currentPrice !== null).map(p => p.ticker);
+  let updated = 0;
+
+  // Try fetching via allorigins CORS proxy
+  for (const ticker of tickers) {
+    try {
+      const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=1d&interval=1d`)}`;
+      const resp = await fetch(url, { signal: AbortSignal.timeout(5000) });
+      if (!resp.ok) continue;
+      const data = await resp.json();
+      const meta = data?.chart?.result?.[0]?.meta;
+      if (meta?.regularMarketPrice) {
+        const pos = positions.find(p => p.ticker === ticker);
+        if (pos) {
+          pos.currentPrice = meta.regularMarketPrice;
+          if (pos.costBasis !== null) {
+            pos.plDollar = (pos.currentPrice - pos.costBasis) * pos.shares;
+            pos.plPct = ((pos.currentPrice - pos.costBasis) / pos.costBasis) * 100;
+          }
+          updated++;
+        }
+      }
+    } catch(e) { /* skip */ }
+  }
+
+  // Recalculate totals if we got updates
+  if (updated > 0) {
+    // Update globals (we can't reassign const, but we modify in place)
+    const newPL = positions.reduce((s,p) => s + (p.plDollar || 0), 0);
+    const newCV = positions.reduce((s,p) => s + (p.currentPrice !== null ? p.currentPrice * p.shares : 0), 0);
+    // We use module-level vars for the perf section
+    window._totalPL = newPL;
+    window._totalPLPct = totalCostBasis > 0 ? ((newCV - totalCostBasis) / totalCostBasis) * 100 : 0;
+  }
+
+  btn.textContent = updated > 0 ? `✅ Updated ${updated} prices` : '⚠️ Could not fetch (CORS)';
+  btn.disabled = false;
+  setTimeout(() => { btn.textContent = '🔄 Refresh Prices'; }, 3000);
+
+  if (updated > 0) {
+    renderPerformance();
+    render(); // re-render table
+    // Update heatmap
+    const hm = document.getElementById('heatmap');
+    hm.innerHTML = '';
+    [...positions].filter(p=>p.plPct!==null).sort((a,b)=>b.plPct-a.plPct).forEach(p => {
+      const intensity = Math.min(Math.abs(p.plPct)/40, 1);
+      const bg = p.plPct >= 0 ? `rgba(0,212,170,${0.15+intensity*0.45})` : `rgba(255,71,87,${0.15+intensity*0.45})`;
+      hm.innerHTML += `<div class="hm-cell" style="background:${bg}"><div class="hm-ticker">${p.ticker}</div><div class="hm-val">${p.plPct>=0?'+':''}${p.plPct.toFixed(1)}%</div></div>`;
+    });
+    positions.filter(p=>p.plPct===null).forEach(p => {
+      hm.innerHTML += `<div class="hm-cell" style="background:rgba(255,255,255,0.05)"><div class="hm-ticker">${p.ticker}</div><div class="hm-val na">N/A</div></div>`;
+    });
+  }
+}
+window.refreshPrices = refreshPrices;
+
+// Initialize performance section
+renderPerformance();
 
 // Charts
 const palette = ['#6366f1','#8b5cf6','#a78bfa','#c084fc','#e879f9','#f472b6','#fb7185','#f97316','#facc15','#4ade80','#2dd4bf','#22d3ee'];
@@ -205,7 +551,6 @@ const hm = document.getElementById('heatmap');
     : `rgba(255,71,87,${0.15+intensity*0.45})`;
   hm.innerHTML += `<div class="hm-cell" style="background:${bg}"><div class="hm-ticker">${p.ticker}</div><div class="hm-val">${p.plPct>=0?'+':''}${p.plPct.toFixed(1)}%</div></div>`;
 });
-// N/A entries
 positions.filter(p=>p.plPct===null).forEach(p => {
   hm.innerHTML += `<div class="hm-cell" style="background:rgba(255,255,255,0.05)"><div class="hm-ticker">${p.ticker}</div><div class="hm-val na">N/A</div></div>`;
 });
@@ -274,13 +619,5 @@ sel.addEventListener('change', render);
 
 render();
 </script>
-
-<div style="margin-top:40px;padding:20px 24px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;text-align:center">
-  <p style="color:#71717a;font-size:12px;line-height:1.7;max-width:800px;margin:0 auto">
-    <strong style="color:#a1a1aa">⚠️ Disclaimer</strong><br>
-    This tracker is purely directional and for informational purposes only. It is based on legacy 13F filings, which reflect historical holdings and may not represent current positions. This information does not constitute financial advice and should not be used to guide financial decisions. Past performance is not indicative of future results. Always consult a qualified financial advisor before making investment decisions.
-  </p>
-</div>
-
 </body>
 </html>
