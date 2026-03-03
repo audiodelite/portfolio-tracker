@@ -299,7 +299,7 @@ document.getElementById('summary').innerHTML = `
   <div class="card"><div class="label">Total Portfolio Value</div><div class="value">$${(totalValue/1e6).toFixed(1)}M</div></div>
   <div class="card"><div class="label">Positions</div><div class="value">${numPositions}</div></div>
   <div class="card"><div class="label">Top Sector</div><div class="value" style="font-size:18px">${topSector[0]}<br><span style="font-size:14px;color:var(--muted)">${(topSector[1]/totalValue*100).toFixed(1)}%</span></div></div>
-  <div class="card"><div class="label">Total Unrealized P/L</div><div class="value ${totalPL>=0?'gain':'loss'}">$${(totalPL/1e6).toFixed(2)}M</div></div>
+  <div class="card"><div class="label">Total Return</div><div class="value ${totalPLPct>=0?'gain':'loss'}">${totalPLPct>=0?'+':''}${totalPLPct.toFixed(2)}%</div></div>
 `;
 
 // === PERFORMANCE TRACKING ===
@@ -386,8 +386,8 @@ function renderPerformance() {
   document.getElementById('perfSummary').innerHTML = `
     <div class="perf-card">
       <div class="perf-label">${getPeriodLabel(currentPeriod)}</div>
-      <div class="perf-value ${totalPeriodPL>=0?'gain':'loss'}">${totalPeriodPL>=0?'+':''}$${(totalPeriodPL/1e6).toFixed(2)}M</div>
-      <div class="perf-sub">${totalPeriodPct>=0?'+':''}${totalPeriodPct.toFixed(2)}% return</div>
+      <div class="perf-value ${totalPeriodPct>=0?'gain':'loss'}">${totalPeriodPct>=0?'+':''}${totalPeriodPct.toFixed(2)}%</div>
+      <div class="perf-sub">Period return</div>
     </div>
     <div class="perf-card">
       <div class="perf-label">Annualized Return</div>
@@ -397,12 +397,12 @@ function renderPerformance() {
     <div class="perf-card">
       <div class="perf-label">🏆 Best Performer</div>
       <div class="perf-value gain" style="font-size:18px">${best.ticker}</div>
-      <div class="perf-sub gain">+${best.periodPct.toFixed(1)}% · +$${(best.periodPL/1e3).toFixed(0)}K</div>
+      <div class="perf-sub gain">+${best.periodPct.toFixed(1)}%</div>
     </div>
     <div class="perf-card">
       <div class="perf-label">📉 Worst Performer</div>
       <div class="perf-value loss" style="font-size:18px">${worst.ticker}</div>
-      <div class="perf-sub loss">${worst.periodPct.toFixed(1)}% · $${(worst.periodPL/1e3).toFixed(0)}K</div>
+      <div class="perf-sub loss">${worst.periodPct.toFixed(1)}%</div>
     </div>
   `;
 
@@ -438,34 +438,34 @@ function renderPerfChart() {
   }
 
   const inceptionValue = values[0];
-  const plData = values.map(v => v - inceptionValue);
-  const finalPL = plData[plData.length - 1];
+  const pctData = values.map(v => inceptionValue > 0 ? ((v - inceptionValue) / inceptionValue) * 100 : 0);
+  const finalPct = pctData[pctData.length - 1];
 
   perfChart = new Chart(ctx, {
     type: 'line',
     data: {
       labels,
       datasets: [{
-        label: 'Cumulative P/L ($)',
-        data: plData,
-        borderColor: finalPL >= 0 ? '#00d4aa' : '#ff4757',
-        backgroundColor: finalPL >= 0 ? 'rgba(0,212,170,0.1)' : 'rgba(255,71,87,0.1)',
+        label: 'Cumulative Return (%)',
+        data: pctData,
+        borderColor: finalPct >= 0 ? '#00d4aa' : '#ff4757',
+        backgroundColor: finalPct >= 0 ? 'rgba(0,212,170,0.1)' : 'rgba(255,71,87,0.1)',
         fill: true,
         tension: 0.3,
         pointRadius: 5,
-        pointBackgroundColor: finalPL >= 0 ? '#00d4aa' : '#ff4757',
+        pointBackgroundColor: finalPct >= 0 ? '#00d4aa' : '#ff4757',
         borderWidth: 2
       }]
     },
     options: {
       responsive: true,
       plugins: {
-        title: { display: true, text: 'Portfolio P/L Over Time', color: '#e4e4e7', font: { size: 14 } },
+        title: { display: true, text: 'Portfolio Return Over Time', color: '#e4e4e7', font: { size: 14 } },
         legend: { display: false }
       },
       scales: {
         x: { ticks: { color: '#71717a' }, grid: { color: 'rgba(255,255,255,0.04)' } },
-        y: { ticks: { color: '#71717a', callback: v => '$' + (v/1e6).toFixed(2) + 'M' }, grid: { color: 'rgba(255,255,255,0.04)' } }
+        y: { ticks: { color: '#71717a', callback: v => (v>=0?'+':'') + v.toFixed(1) + '%' }, grid: { color: 'rgba(255,255,255,0.04)' } }
       }
     }
   });
@@ -476,16 +476,16 @@ function renderTopMoversChart() {
   if (topMoversChart) topMoversChart.destroy();
 
   const { perPosition } = calcPeriodPL(currentPeriod);
-  const sorted = [...perPosition].sort((a,b) => Math.abs(b.periodPL) - Math.abs(a.periodPL)).slice(0, 10);
+  const sorted = [...perPosition].sort((a,b) => Math.abs(b.periodPct) - Math.abs(a.periodPct)).slice(0, 10);
 
   topMoversChart = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: sorted.map(p => p.ticker),
       datasets: [{
-        label: 'P/L ($)',
-        data: sorted.map(p => p.periodPL),
-        backgroundColor: sorted.map(p => p.periodPL >= 0 ? 'rgba(0,212,170,0.7)' : 'rgba(255,71,87,0.7)'),
+        label: 'Return (%)',
+        data: sorted.map(p => p.periodPct),
+        backgroundColor: sorted.map(p => p.periodPct >= 0 ? 'rgba(0,212,170,0.7)' : 'rgba(255,71,87,0.7)'),
         borderRadius: 6
       }]
     },
@@ -493,11 +493,11 @@ function renderTopMoversChart() {
       indexAxis: 'y',
       responsive: true,
       plugins: {
-        title: { display: true, text: 'Top 10 P/L Contributors', color: '#e4e4e7', font: { size: 14 } },
+        title: { display: true, text: 'Top 10 Movers (%)', color: '#e4e4e7', font: { size: 14 } },
         legend: { display: false }
       },
       scales: {
-        x: { ticks: { color: '#71717a', callback: v => (v>=0?'+':'') + '$' + (v/1e3).toFixed(0) + 'K' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+        x: { ticks: { color: '#71717a', callback: v => (v>=0?'+':'') + v.toFixed(1) + '%' }, grid: { color: 'rgba(255,255,255,0.04)' } },
         y: { ticks: { color: '#e4e4e7' }, grid: { display: false } }
       }
     }
@@ -540,19 +540,17 @@ function renderMonthlyTable() {
 
   const tbl = document.getElementById('monthlyTable');
   tbl.innerHTML = `
-    <thead><tr><th>Month</th><th>P/L ($)</th><th>Return (%)</th><th>Status</th></tr></thead>
+    <thead><tr><th>Month</th><th>Return (%)</th><th>Status</th></tr></thead>
     <tbody>${months.map(m => {
       const pct = m.basis > 0 ? (m.pl / m.basis) * 100 : 0;
       return `<tr>
         <td>${m.label}</td>
-        <td class="${m.pl>=0?'gain':'loss'}">${m.pl>=0?'+':''}$${(m.pl/1e3).toFixed(0)}K</td>
         <td class="${pct>=0?'gain':'loss'}">${pct>=0?'+':''}${pct.toFixed(2)}%</td>
         <td style="color:var(--muted)">${m.status}</td>
       </tr>`;
     }).join('')}
     <tr style="font-weight:700;border-top:2px solid var(--border)">
       <td>Total</td>
-      <td class="${inceptionTotal>=0?'gain':'loss'}">${inceptionTotal>=0?'+':''}$${(inceptionTotal/1e3).toFixed(0)}K</td>
       <td class="${inceptionTotal>=0?'gain':'loss'}">${inceptionBasis>0?(inceptionTotal>=0?'+':'')+(inceptionTotal/inceptionBasis*100).toFixed(2)+'%':'0.00%'}</td>
       <td style="color:var(--muted)">Dec 1, 2025 → Now</td>
     </tr>
@@ -654,8 +652,7 @@ const cols = [
   {key:'weight',label:'Weight %',fmt:v=>v.toFixed(2)+'%',num:true},
   {key:'costBasis',label:'Cost Basis',fmt:v=>v!==null?'$'+v.toFixed(2):'<span class="na">N/A</span>',num:true},
   {key:'currentPrice',label:'Current Price',fmt:v=>v!==null?'$'+v.toFixed(2):'<span class="na">N/A</span>',num:true},
-  {key:'plDollar',label:'P/L ($)',fmt:v=>v!==null?`<span class="${v>=0?'gain':'loss'}">${v>=0?'+':''}$${(v/1e3).toFixed(1)}K</span>`:'<span class="na">N/A</span>',num:true},
-  {key:'plPct',label:'P/L (%)',fmt:v=>v!==null?`<span class="${v>=0?'gain':'loss'}">${v>=0?'+':''}${v.toFixed(2)}%</span>`:'<span class="na">N/A</span>',num:true},
+  {key:'plPct',label:'Return (%)',fmt:v=>v!==null?`<span class="${v>=0?'gain':'loss'}">${v>=0?'+':''}${v.toFixed(2)}%</span>`:'<span class="na">N/A</span>',num:true},
 ];
 
 let sortCol = 3, sortAsc = false;
