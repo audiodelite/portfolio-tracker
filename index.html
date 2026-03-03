@@ -7,41 +7,47 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0a0a0f;--card:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);--text:#e4e4e7;--muted:#71717a;--green:#00d4aa;--red:#ff4757;--accent:#6366f1}
+:root{--bg:#0a0a0f;--card:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);--text:#e4e4e7;--muted:#71717a;--green:#00d4aa;--red:#ff4757;--accent:#6366f1;--table-header:#12121a;--table-even:rgba(255,255,255,0.02);--table-hover:rgba(99,102,241,0.08);--disclaimer-bg:rgba(255,255,255,0.02);--disclaimer-border:rgba(255,255,255,0.06);--h1-from:#fff;--h1-to:#a1a1aa;--card-text:#e4e4e7;--input-bg:rgba(255,255,255,0.06)}
+[data-theme="light"]{--bg:#f4f4f5;--card:rgba(0,0,0,0.03);--border:rgba(0,0,0,0.1);--text:#18181b;--muted:#71717a;--table-header:#e4e4e7;--table-even:rgba(0,0,0,0.02);--table-hover:rgba(99,102,241,0.08);--disclaimer-bg:rgba(0,0,0,0.02);--disclaimer-border:rgba(0,0,0,0.08);--h1-from:#18181b;--h1-to:#52525b;--card-text:#18181b;--input-bg:rgba(0,0,0,0.05)}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:24px;max-width:1440px;margin:0 auto}
-h1{font-size:28px;font-weight:700;background:linear-gradient(135deg,#fff,#a1a1aa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+h1{font-size:28px;font-weight:700;background:linear-gradient(135deg,var(--h1-from),var(--h1-to));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:8px}
+.header-right{display:flex;align-items:center;gap:12px}
 .timestamp{color:var(--muted);font-size:13px}
-.card{background:var(--card);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:16px;padding:24px}
+.theme-toggle{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:6px 12px;cursor:pointer;font-size:18px;transition:all .2s}
+.theme-toggle:hover{border-color:var(--accent)}
+.card{background:var(--card);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:16px;padding:24px;color:var(--card-text)}
 .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px}
 .summary .card{text-align:center}
 .summary .label{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
 .summary .value{font-size:28px;font-weight:700}
 .charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
 @media(max-width:900px){.charts{grid-template-columns:1fr}}
-.filters{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap}
-.filters input,.filters select{background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:10px;padding:10px 16px;color:var(--text);font-size:14px;outline:none;transition:border .2s}
+.filters{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.filters input,.filters select{background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:10px 16px;color:var(--text);font-size:14px;outline:none;transition:border .2s}
 .filters input:focus,.filters select:focus{border-color:var(--accent)}
 .filters input{min-width:220px}
 .filters select{min-width:180px}
+.export-btn{background:rgba(99,102,241,0.15);border:1px solid var(--accent);border-radius:10px;padding:10px 18px;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
+.export-btn:hover{background:var(--accent);color:#fff}
 .table-wrap{overflow-x:auto;margin-bottom:24px}
 table{width:100%;border-collapse:collapse;font-size:13px}
-th{position:sticky;top:0;background:#12121a;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-size:11px;font-weight:600;padding:12px 14px;text-align:left;cursor:pointer;user-select:none;white-space:nowrap;border-bottom:1px solid var(--border)}
+th{position:sticky;top:0;background:var(--table-header);color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-size:11px;font-weight:600;padding:12px 14px;text-align:left;cursor:pointer;user-select:none;white-space:nowrap;border-bottom:1px solid var(--border)}
 th:hover{color:var(--text)}
 th .arrow{margin-left:4px;font-size:10px}
 td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.03);white-space:nowrap}
-tr:nth-child(even){background:rgba(255,255,255,0.02)}
-tr:hover{background:rgba(99,102,241,0.08)}
-.ticker{font-weight:700;color:#fff}
+tr:nth-child(even){background:var(--table-even)}
+tr:hover{background:var(--table-hover)}
+.ticker{font-weight:700;color:var(--text)}
 .sector-tag{font-size:11px;padding:3px 8px;border-radius:6px;background:rgba(99,102,241,0.15);color:#a5b4fc}
 .gain{color:var(--green)}
 .loss{color:var(--red)}
 .na{color:var(--muted)}
-.heatmap{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px}
-.hm-cell{border-radius:8px;padding:8px 6px;text-align:center;font-size:12px;font-weight:600;transition:transform .15s}
-.hm-cell:hover{transform:scale(1.08)}
-.hm-ticker{font-size:11px;font-weight:700;margin-bottom:2px}
-.hm-val{font-size:10px;opacity:.85}
+.treemap{display:flex;flex-wrap:wrap;gap:3px;min-height:200px}
+.tm-cell{border-radius:6px;padding:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:11px;font-weight:600;overflow:hidden;cursor:default;transition:opacity .15s;min-height:50px}
+.tm-cell:hover{opacity:.85}
+.tm-ticker{font-size:11px;font-weight:700;margin-bottom:1px;text-shadow:0 1px 2px rgba(0,0,0,0.5)}
+.tm-val{font-size:10px;opacity:.9;text-shadow:0 1px 2px rgba(0,0,0,0.5)}
 canvas{max-height:320px}
 .period-btns{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
 .period-btn{background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:10px;padding:8px 18px;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
@@ -56,17 +62,48 @@ canvas{max-height:320px}
 .refresh-btn:hover{background:var(--accent);color:#fff}
 .refresh-btn:disabled{opacity:.5;cursor:not-allowed}
 .monthly-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px}
-.monthly-table th{background:#12121a;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-size:11px;font-weight:600;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.monthly-table th{background:var(--table-header);color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-size:11px;font-weight:600;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
 .monthly-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.03)}
 .section-title{font-size:18px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:10px}
 .perf-range{font-size:12px;color:var(--muted);font-weight:400}
+.risk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}
+.risk-card{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+.risk-card .risk-label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.risk-card .risk-value{font-size:22px;font-weight:700}
+.risk-card .risk-sub{font-size:12px;color:var(--muted);margin-top:4px}
+.notable-moves{margin-bottom:24px}
+.notable-item{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:8px 14px;margin:4px;font-size:13px;font-weight:600}
+.notable-item .arrow-up{color:var(--green)}
+.notable-item .arrow-down{color:var(--red)}
+@media(max-width:768px){
+  body{padding:12px}
+  .card{padding:14px}
+  .summary{grid-template-columns:1fr 1fr}
+  .summary .value{font-size:20px}
+  .charts{grid-template-columns:1fr}
+  .table-wrap{font-size:12px}
+  .table-wrap table{font-size:11px}
+  .table-wrap th,.table-wrap td{padding:8px 8px}
+  .perf-summary{grid-template-columns:1fr 1fr}
+  .risk-grid{grid-template-columns:1fr 1fr}
+  .treemap{min-height:150px}
+  .tm-cell{min-height:40px;font-size:10px;padding:4px}
+  .tm-ticker{font-size:9px}
+  .tm-val{font-size:8px}
+  .filters{gap:8px}
+  .filters input{min-width:160px}
+  h1{font-size:22px}
+}
 </style>
 </head>
 <body>
 
 <div class="header">
   <h1>🌊 FirstWave Portfolio Tracker</h1>
-  <div class="timestamp">Q4 2025 Filing · Filed 2026-02-13 · Last updated <span id="ts"></span></div>
+  <div class="header-right">
+    <div class="timestamp">Q4 2025 Filing · Filed 2026-02-13 · Last updated <span id="ts"></span></div>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌙</button>
+  </div>
 </div>
 
 <div class="summary" id="summary"></div>
@@ -99,15 +136,26 @@ canvas{max-height:320px}
   <div class="card"><canvas id="topChart"></canvas></div>
 </div>
 
-<div class="card" style="margin-bottom:24px">
-  <h3 style="margin-bottom:12px;font-size:16px">P/L Heatmap</h3>
-  <div class="heatmap" id="heatmap"></div>
+<div class="charts" style="margin-top:0">
+  <div class="card"><canvas id="sectorPerfChart"></canvas></div>
+  <div class="card" style="display:flex;flex-direction:column">
+    <h3 style="margin-bottom:12px;font-size:16px">Position Treemap</h3>
+    <div class="treemap" id="treemap" style="flex:1"></div>
+  </div>
 </div>
+
+<div class="card" style="margin-bottom:24px">
+  <div class="section-title">📊 Risk & Concentration Metrics</div>
+  <div class="risk-grid" id="riskMetrics"></div>
+</div>
+
+<div id="notableMoves"></div>
 
 <div class="card">
   <div class="filters">
     <input type="text" id="search" placeholder="🔍 Search ticker…">
     <select id="sectorFilter"><option value="">All Sectors</option></select>
+    <button class="export-btn" onclick="exportCSV()">📥 Export CSV</button>
   </div>
   <div class="table-wrap">
     <table>
@@ -120,7 +168,9 @@ canvas{max-height:320px}
 <script>
 const INCEPTION_DATE = '2025-12-01';
 
-// Monthly prices from real market data
+// S&P 500 benchmark data
+const sp500 = { dec1: 6032, dec31: 5881, jan31: 6041, feb28: 5954, current: 5849 };
+
 const monthlyPrices = {
   "ZS":{"current":154.67,"dec":224.92,"jan":200.01,"feb":146.99},
   "UVIX":{"current":6.99,"dec":5.71,"jan":5.89,"feb":6.28},
@@ -196,8 +246,6 @@ const monthlyPrices = {
   "ALAB":{"current":109.8,"dec":166.36,"jan":150.62,"feb":118.83}
 };
 
-// raw: [ticker, sector, shares, value, weight, costBasis, currentPrice]
-// currentPrice updated with real prices from prices_clean.json
 const raw = [
 ["ZS","INFORMATION TECHNOLOGY",11563,2600750,1.55,282.822,154.67],
 ["ZETA","INFORMATION TECHNOLOGY",151235,3077632,1.83,19.0298,18.04],
@@ -302,6 +350,29 @@ document.getElementById('summary').innerHTML = `
   <div class="card"><div class="label">Total Return</div><div class="value ${totalPLPct>=0?'gain':'loss'}">${totalPLPct>=0?'+':''}${totalPLPct.toFixed(2)}%</div></div>
 `;
 
+// === THEME TOGGLE ===
+function initTheme() {
+  const saved = localStorage.getItem('fw-theme');
+  if (saved === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    document.getElementById('themeToggle').textContent = '☀️';
+  }
+}
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  if (current === 'light') {
+    document.documentElement.removeAttribute('data-theme');
+    localStorage.setItem('fw-theme', 'dark');
+    document.getElementById('themeToggle').textContent = '🌙';
+  } else {
+    document.documentElement.setAttribute('data-theme', 'light');
+    localStorage.setItem('fw-theme', 'light');
+    document.getElementById('themeToggle').textContent = '☀️';
+  }
+}
+window.toggleTheme = toggleTheme;
+initTheme();
+
 // === PERFORMANCE TRACKING ===
 let currentPeriod = 'inception';
 let perfChart = null;
@@ -311,17 +382,16 @@ function getValidPositions() {
   return positions.filter(p => p.costBasis !== null && p.currentPrice !== null);
 }
 
-// Get baseline price for a position given the selected period
 function getBaselinePrice(ticker, costBasis, period) {
   const mp = monthlyPrices[ticker];
   switch(period) {
     case 'inception':
     case '3m':
-      return costBasis; // Dec 1 baseline = cost basis from 13F
+      return costBasis;
     case 'ytd':
-      return mp ? mp.dec : null; // Jan 1 baseline = Dec 31 close
+      return mp ? mp.dec : null;
     case '1m':
-      return mp ? mp.feb : null; // 1M baseline = Feb 28 close
+      return mp ? mp.feb : null;
     default:
       return costBasis;
   }
@@ -377,8 +447,6 @@ window.setPeriod = setPeriod;
 
 function renderPerformance() {
   const { totalPeriodPL, totalPeriodPct, perPosition } = calcPeriodPL(currentPeriod);
-
-  // Best & worst by period return %
   const sorted = [...perPosition].sort((a,b) => b.periodPct - a.periodPct);
   const best = sorted[0];
   const worst = sorted[sorted.length - 1];
@@ -415,22 +483,20 @@ function renderPerfChart() {
   const ctx = document.getElementById('perfChart');
   if (perfChart) perfChart.destroy();
 
-  // Real portfolio values at each month-end
   const valid = getValidPositions();
   const labels = ['Dec 1', 'Dec 31', 'Jan 31', 'Feb 28', 'Current'];
   const values = [0, 0, 0, 0, 0];
 
   for (const p of valid) {
     const mp = monthlyPrices[p.ticker];
-    values[0] += p.costBasis * p.shares; // inception
+    values[0] += p.costBasis * p.shares;
     if (mp) {
       values[1] += mp.dec * p.shares;
       values[2] += mp.jan * p.shares;
       values[3] += mp.feb * p.shares;
       values[4] += mp.current * p.shares;
     } else {
-      // YNDX: use costBasis for dec baseline, current for current
-      values[1] += p.currentPrice * p.shares; // approximate
+      values[1] += p.currentPrice * p.shares;
       values[2] += p.currentPrice * p.shares;
       values[3] += p.currentPrice * p.shares;
       values[4] += p.currentPrice * p.shares;
@@ -441,12 +507,16 @@ function renderPerfChart() {
   const pctData = values.map(v => inceptionValue > 0 ? ((v - inceptionValue) / inceptionValue) * 100 : 0);
   const finalPct = pctData[pctData.length - 1];
 
+  // S&P 500 benchmark
+  const sp500Values = [sp500.dec1, sp500.dec31, sp500.jan31, sp500.feb28, sp500.current];
+  const sp500Pct = sp500Values.map(v => ((v - sp500.dec1) / sp500.dec1) * 100);
+
   perfChart = new Chart(ctx, {
     type: 'line',
     data: {
       labels,
       datasets: [{
-        label: 'Cumulative Return (%)',
+        label: 'Portfolio Return (%)',
         data: pctData,
         borderColor: finalPct >= 0 ? '#00d4aa' : '#ff4757',
         backgroundColor: finalPct >= 0 ? 'rgba(0,212,170,0.1)' : 'rgba(255,71,87,0.1)',
@@ -455,13 +525,24 @@ function renderPerfChart() {
         pointRadius: 5,
         pointBackgroundColor: finalPct >= 0 ? '#00d4aa' : '#ff4757',
         borderWidth: 2
+      },{
+        label: 'S&P 500 (%)',
+        data: sp500Pct,
+        borderColor: '#6366f1',
+        backgroundColor: 'transparent',
+        borderDash: [6, 3],
+        fill: false,
+        tension: 0.3,
+        pointRadius: 4,
+        pointBackgroundColor: '#6366f1',
+        borderWidth: 2
       }]
     },
     options: {
       responsive: true,
       plugins: {
-        title: { display: true, text: 'Portfolio Return Over Time', color: '#e4e4e7', font: { size: 14 } },
-        legend: { display: false }
+        title: { display: true, text: 'Portfolio vs S&P 500', color: '#e4e4e7', font: { size: 14 } },
+        legend: { labels: { color: '#a1a1aa' } }
       },
       scales: {
         x: { ticks: { color: '#71717a' }, grid: { color: 'rgba(255,255,255,0.04)' } },
@@ -506,10 +587,7 @@ function renderTopMoversChart() {
 
 function renderMonthlyTable() {
   const valid = getValidPositions();
-
-  // Calculate real monthly P/L
   let decPL = 0, janPL = 0, febPL = 0, marPL = 0;
-  let inceptionTotal = 0;
 
   for (const p of valid) {
     const mp = monthlyPrices[p.ticker];
@@ -519,13 +597,8 @@ function renderMonthlyTable() {
     febPL += (mp.feb - mp.jan) * p.shares;
     marPL += (mp.current - mp.feb) * p.shares;
   }
-  // Add YNDX inception P/L (no monthly data)
-  const yndx = valid.find(p => p.ticker === 'YNDX');
-  if (yndx) {
-    decPL += (yndx.currentPrice - yndx.costBasis) * yndx.shares * 0; // can't split, exclude from monthly
-  }
 
-  inceptionTotal = decPL + janPL + febPL + marPL;
+  const inceptionTotal = decPL + janPL + febPL + marPL;
   const inceptionBasis = valid.reduce((s, p) => {
     const mp = monthlyPrices[p.ticker];
     return s + (mp ? p.costBasis * p.shares : 0);
@@ -538,27 +611,175 @@ function renderMonthlyTable() {
     { label: 'March 2026 (MTD)', pl: marPL, basis: inceptionBasis, status: '⏳ In Progress' },
   ];
 
-  const tbl = document.getElementById('monthlyTable');
-  tbl.innerHTML = `
+  document.getElementById('monthlyTable').innerHTML = `
     <thead><tr><th>Month</th><th>Return (%)</th><th>Status</th></tr></thead>
     <tbody>${months.map(m => {
       const pct = m.basis > 0 ? (m.pl / m.basis) * 100 : 0;
-      return `<tr>
-        <td>${m.label}</td>
-        <td class="${pct>=0?'gain':'loss'}">${pct>=0?'+':''}${pct.toFixed(2)}%</td>
-        <td style="color:var(--muted)">${m.status}</td>
-      </tr>`;
+      return `<tr><td>${m.label}</td><td class="${pct>=0?'gain':'loss'}">${pct>=0?'+':''}${pct.toFixed(2)}%</td><td style="color:var(--muted)">${m.status}</td></tr>`;
     }).join('')}
     <tr style="font-weight:700;border-top:2px solid var(--border)">
       <td>Total</td>
       <td class="${inceptionTotal>=0?'gain':'loss'}">${inceptionBasis>0?(inceptionTotal>=0?'+':'')+(inceptionTotal/inceptionBasis*100).toFixed(2)+'%':'0.00%'}</td>
       <td style="color:var(--muted)">Dec 1, 2025 → Now</td>
-    </tr>
-    </tbody>
+    </tr></tbody>`;
+}
+
+// === SECTOR PERFORMANCE CHART ===
+function renderSectorPerfChart() {
+  const sectorData = {};
+  positions.forEach(p => {
+    if (p.plPct === null) return;
+    if (!sectorData[p.sector]) sectorData[p.sector] = { weightedReturn: 0, totalWeight: 0 };
+    sectorData[p.sector].weightedReturn += p.plPct * p.weight;
+    sectorData[p.sector].totalWeight += p.weight;
+  });
+  const sectorPerf = Object.entries(sectorData).map(([s, d]) => ({
+    sector: s, avgReturn: d.totalWeight > 0 ? d.weightedReturn / d.totalWeight : 0
+  })).sort((a, b) => b.avgReturn - a.avgReturn);
+
+  new Chart(document.getElementById('sectorPerfChart'), {
+    type: 'bar',
+    data: {
+      labels: sectorPerf.map(s => s.sector.split(' ').map(w => w[0] + w.slice(1).toLowerCase()).join(' ')),
+      datasets: [{
+        label: 'Weighted Return (%)',
+        data: sectorPerf.map(s => s.avgReturn),
+        backgroundColor: sectorPerf.map(s => s.avgReturn >= 0 ? 'rgba(0,212,170,0.7)' : 'rgba(255,71,87,0.7)'),
+        borderRadius: 6
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: {
+        title: { display: true, text: 'Sector Performance (Weighted Return %)', color: '#e4e4e7', font: { size: 14 } },
+        legend: { display: false }
+      },
+      scales: {
+        x: { ticks: { color: '#71717a', callback: v => (v>=0?'+':'') + v.toFixed(1) + '%' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+        y: { ticks: { color: '#e4e4e7', font: { size: 10 } }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+// === TREEMAP ===
+function renderTreemap() {
+  const container = document.getElementById('treemap');
+  const items = [...positions].filter(p => p.plPct !== null).sort((a, b) => b.weight - a.weight);
+  const totalW = items.reduce((s, p) => s + p.weight, 0);
+
+  container.innerHTML = items.map(p => {
+    const widthPct = (p.weight / totalW * 100);
+    const intensity = Math.min(Math.abs(p.plPct) / 50, 1);
+    const bg = p.plPct >= 0
+      ? `rgba(0,212,170,${0.2 + intensity * 0.6})`
+      : `rgba(255,71,87,${0.2 + intensity * 0.6})`;
+    const minW = Math.max(widthPct, 2);
+    return `<div class="tm-cell" style="background:${bg};flex:${minW};min-width:60px">
+      <div class="tm-ticker">${p.ticker}</div>
+      <div class="tm-val">${p.plPct>=0?'+':''}${p.plPct.toFixed(1)}%</div>
+    </div>`;
+  }).join('');
+
+  // Add N/A positions
+  positions.filter(p => p.plPct === null).forEach(p => {
+    container.innerHTML += `<div class="tm-cell" style="background:rgba(255,255,255,0.05);flex:${Math.max(p.weight/totalW*100,2)};min-width:60px">
+      <div class="tm-ticker">${p.ticker}</div><div class="tm-val na">N/A</div></div>`;
+  });
+}
+
+// === RISK METRICS ===
+function renderRiskMetrics() {
+  const sortedByWeight = [...positions].sort((a, b) => b.weight - a.weight);
+  const top5 = sortedByWeight.slice(0, 5).reduce((s, p) => s + p.weight, 0);
+  const top10 = sortedByWeight.slice(0, 10).reduce((s, p) => s + p.weight, 0);
+  const hhi = positions.reduce((s, p) => s + p.weight * p.weight, 0);
+  const numSectors = new Set(positions.map(p => p.sector)).size;
+
+  // Sharpe ratio calculation
+  const valid = getValidPositions();
+  const monthlyReturns = [];
+  let decVal = 0, janVal = 0, febVal = 0, marVal = 0, incVal = 0;
+  for (const p of valid) {
+    const mp = monthlyPrices[p.ticker];
+    if (!mp) continue;
+    incVal += p.costBasis * p.shares;
+    decVal += mp.dec * p.shares;
+    janVal += mp.jan * p.shares;
+    febVal += mp.feb * p.shares;
+    marVal += mp.current * p.shares;
+  }
+  if (incVal > 0) {
+    monthlyReturns.push((decVal - incVal) / incVal * 100);
+    monthlyReturns.push((janVal - decVal) / decVal * 100);
+    monthlyReturns.push((febVal - janVal) / janVal * 100);
+    monthlyReturns.push((marVal - febVal) / febVal * 100);
+  }
+
+  const riskFreeMonthly = 0.417;
+  const excessReturns = monthlyReturns.map(r => r - riskFreeMonthly);
+  const avgExcess = excessReturns.reduce((s, v) => s + v, 0) / excessReturns.length;
+  const stdDev = Math.sqrt(excessReturns.reduce((s, v) => s + (v - avgExcess) ** 2, 0) / (excessReturns.length - 1));
+  const sharpe = stdDev > 0 ? (avgExcess / stdDev) * Math.sqrt(12) : 0;
+
+  document.getElementById('riskMetrics').innerHTML = `
+    <div class="risk-card"><div class="risk-label">Top 5 Concentration</div><div class="risk-value">${top5.toFixed(1)}%</div><div class="risk-sub">Sum of top 5 weights</div></div>
+    <div class="risk-card"><div class="risk-label">Top 10 Concentration</div><div class="risk-value">${top10.toFixed(1)}%</div><div class="risk-sub">Sum of top 10 weights</div></div>
+    <div class="risk-card"><div class="risk-label">HHI Index</div><div class="risk-value">${hhi.toFixed(1)}</div><div class="risk-sub">Herfindahl-Hirschman</div></div>
+    <div class="risk-card"><div class="risk-label">Sectors</div><div class="risk-value">${numSectors}</div><div class="risk-sub">Unique sectors</div></div>
+    <div class="risk-card"><div class="risk-label">Sharpe Ratio</div><div class="risk-value ${sharpe>=0?'gain':'loss'}">${sharpe.toFixed(2)}</div><div class="risk-sub">Annualized (5% Rf)</div></div>
   `;
 }
 
-// Refresh prices via CORS proxy + Yahoo Finance
+// === NOTABLE MOVES ===
+function renderNotableMoves() {
+  const moves = [];
+  positions.forEach(p => {
+    const mp = monthlyPrices[p.ticker];
+    if (!mp || !mp.feb) return;
+    const movePct = ((mp.current - mp.feb) / mp.feb) * 100;
+    if (Math.abs(movePct) > 10) {
+      moves.push({ ticker: p.ticker, movePct });
+    }
+  });
+  moves.sort((a, b) => Math.abs(b.movePct) - Math.abs(a.movePct));
+
+  if (moves.length === 0) {
+    document.getElementById('notableMoves').innerHTML = '';
+    return;
+  }
+
+  document.getElementById('notableMoves').innerHTML = `
+    <div class="card notable-moves" style="margin-bottom:24px">
+      <div class="section-title">⚠️ Notable Moves <span class="perf-range">(Last 30 days, >10% move)</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${moves.map(m => `<div class="notable-item">
+          <span class="ticker">${m.ticker}</span>
+          <span class="${m.movePct>=0?'arrow-up':'arrow-down'}">${m.movePct>=0?'↑':'↓'} ${Math.abs(m.movePct).toFixed(1)}%</span>
+        </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+// === CSV EXPORT ===
+function exportCSV() {
+  const headers = ['Ticker','Sector','Shares','Weight%','Current Price','Return%'];
+  const rows = positions.map(p => [
+    p.ticker, p.sector, p.shares, p.weight.toFixed(2),
+    p.currentPrice !== null ? p.currentPrice.toFixed(2) : '',
+    p.plPct !== null ? p.plPct.toFixed(2) : ''
+  ]);
+  const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'firstwave_portfolio.csv';
+  a.click();
+}
+window.exportCSV = exportCSV;
+
+// Refresh prices
 async function refreshPrices() {
   const btn = document.getElementById('refreshBtn');
   btn.disabled = true;
@@ -582,12 +803,11 @@ async function refreshPrices() {
             pos.plDollar = (pos.currentPrice - pos.costBasis) * pos.shares;
             pos.plPct = ((pos.currentPrice - pos.costBasis) / pos.costBasis) * 100;
           }
-          // Update monthlyPrices current
           if (monthlyPrices[ticker]) monthlyPrices[ticker].current = meta.regularMarketPrice;
           updated++;
         }
       }
-    } catch(e) { /* skip */ }
+    } catch(e) {}
   }
 
   btn.textContent = updated > 0 ? `✅ Updated ${updated} prices` : '⚠️ Could not fetch (CORS)';
@@ -597,22 +817,19 @@ async function refreshPrices() {
   if (updated > 0) {
     renderPerformance();
     render();
-    const hm = document.getElementById('heatmap');
-    hm.innerHTML = '';
-    [...positions].filter(p=>p.plPct!==null).sort((a,b)=>b.plPct-a.plPct).forEach(p => {
-      const intensity = Math.min(Math.abs(p.plPct)/40, 1);
-      const bg = p.plPct >= 0 ? `rgba(0,212,170,${0.15+intensity*0.45})` : `rgba(255,71,87,${0.15+intensity*0.45})`;
-      hm.innerHTML += `<div class="hm-cell" style="background:${bg}"><div class="hm-ticker">${p.ticker}</div><div class="hm-val">${p.plPct>=0?'+':''}${p.plPct.toFixed(1)}%</div></div>`;
-    });
-    positions.filter(p=>p.plPct===null).forEach(p => {
-      hm.innerHTML += `<div class="hm-cell" style="background:rgba(255,255,255,0.05)"><div class="hm-ticker">${p.ticker}</div><div class="hm-val na">N/A</div></div>`;
-    });
+    renderTreemap();
+    renderRiskMetrics();
+    renderNotableMoves();
   }
 }
 window.refreshPrices = refreshPrices;
 
-// Initialize performance section
+// Initialize
 renderPerformance();
+renderSectorPerfChart();
+renderTreemap();
+renderRiskMetrics();
+renderNotableMoves();
 
 // Charts
 const palette = ['#6366f1','#8b5cf6','#a78bfa','#c084fc','#e879f9','#f472b6','#fb7185','#f97316','#facc15','#4ade80','#2dd4bf','#22d3ee'];
@@ -623,34 +840,19 @@ new Chart(document.getElementById('sectorChart'), {
   options:{responsive:true,plugins:{title:{display:true,text:'Sector Breakdown',color:'#e4e4e7',font:{size:16}},legend:{position:'right',labels:{color:'#a1a1aa',font:{size:11},padding:8,boxWidth:12}}}}
 });
 
-const top10 = [...positions].sort((a,b)=>b.value-a.value).slice(0,10);
+const top10pos = [...positions].sort((a,b)=>b.value-a.value).slice(0,10);
 new Chart(document.getElementById('topChart'), {
   type:'bar',
-  data:{labels:top10.map(p=>p.ticker),datasets:[{label:'Value ($)',data:top10.map(p=>p.value),backgroundColor:'rgba(99,102,241,0.7)',borderRadius:6}]},
+  data:{labels:top10pos.map(p=>p.ticker),datasets:[{label:'Value ($)',data:top10pos.map(p=>p.value),backgroundColor:'rgba(99,102,241,0.7)',borderRadius:6}]},
   options:{indexAxis:'y',responsive:true,plugins:{title:{display:true,text:'Top 10 Positions by Value',color:'#e4e4e7',font:{size:16}},legend:{display:false}},scales:{x:{ticks:{color:'#71717a',callback:v=>'$'+(v/1e6).toFixed(1)+'M'},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#e4e4e7'},grid:{display:false}}}}
 });
 
-// Heatmap
-const hm = document.getElementById('heatmap');
-[...positions].filter(p=>p.plPct!==null).sort((a,b)=>b.plPct-a.plPct).forEach(p => {
-  const intensity = Math.min(Math.abs(p.plPct)/40, 1);
-  const bg = p.plPct >= 0
-    ? `rgba(0,212,170,${0.15+intensity*0.45})`
-    : `rgba(255,71,87,${0.15+intensity*0.45})`;
-  hm.innerHTML += `<div class="hm-cell" style="background:${bg}"><div class="hm-ticker">${p.ticker}</div><div class="hm-val">${p.plPct>=0?'+':''}${p.plPct.toFixed(1)}%</div></div>`;
-});
-positions.filter(p=>p.plPct===null).forEach(p => {
-  hm.innerHTML += `<div class="hm-cell" style="background:rgba(255,255,255,0.05)"><div class="hm-ticker">${p.ticker}</div><div class="hm-val na">N/A</div></div>`;
-});
-
-// Table
+// Table (stripped: no Value($), no Cost Basis)
 const cols = [
   {key:'ticker',label:'Ticker',fmt:v=>`<span class="ticker">${v}</span>`},
   {key:'sector',label:'Sector',fmt:v=>`<span class="sector-tag">${v}</span>`},
   {key:'shares',label:'Shares',fmt:v=>v.toLocaleString(),num:true},
-  {key:'value',label:'Value ($)',fmt:v=>'$'+(v/1e3).toFixed(0)+'K',num:true},
   {key:'weight',label:'Weight %',fmt:v=>v.toFixed(2)+'%',num:true},
-  {key:'costBasis',label:'Cost Basis',fmt:v=>v!==null?'$'+v.toFixed(2):'<span class="na">N/A</span>',num:true},
   {key:'currentPrice',label:'Current Price',fmt:v=>v!==null?'$'+v.toFixed(2):'<span class="na">N/A</span>',num:true},
   {key:'plPct',label:'Return (%)',fmt:v=>v!==null?`<span class="${v>=0?'gain':'loss'}">${v>=0?'+':''}${v.toFixed(2)}%</span>`:'<span class="na">N/A</span>',num:true},
 ];
@@ -665,9 +867,7 @@ function renderHead(){
 
 function renderBody(data){
   document.getElementById('tbody').innerHTML = data.map(p=>
-    '<tr>'+cols.map(c=>
-      `<td>${c.fmt(p[c.key])}</td>`
-    ).join('')+'</tr>'
+    '<tr>'+cols.map(c=>`<td>${c.fmt(p[c.key])}</td>`).join('')+'</tr>'
   ).join('');
 }
 
@@ -706,7 +906,7 @@ sel.addEventListener('change', render);
 render();
 </script>
 
-<div style="margin-top:40px;padding:20px 24px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;text-align:center">
+<div style="margin-top:40px;padding:20px 24px;background:var(--disclaimer-bg);border:1px solid var(--disclaimer-border);border-radius:12px;text-align:center">
   <p style="color:#71717a;font-size:12px;line-height:1.7;max-width:800px;margin:0 auto">
     <strong style="color:#a1a1aa">⚠️ Disclaimer</strong><br>
     This tracker is purely directional and for informational purposes only. It is based on legacy 13F filings, which reflect historical holdings and may not represent current positions. This information does not constitute financial advice and should not be used to guide financial decisions. Past performance is not indicative of future results. Always consult a qualified financial advisor before making investment decisions.
