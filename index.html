@@ -247,8 +247,12 @@ function getPeriodFraction(period) {
 
   switch(period) {
     case 'inception':
-    case 'ytd': // YTD = same as inception since inception is Dec 1
       return 1;
+    case 'ytd': {
+      const ytdStart = new Date('2026-01-01');
+      const d = (now - ytdStart) / (1000*60*60*24);
+      return Math.max(0, d) / totalDays;
+    }
     case '3m': {
       const d = Math.min(90, totalDays);
       return d / totalDays;
@@ -281,8 +285,9 @@ function setPeriod(period) {
     b.classList.toggle('active', b.dataset.period === period);
   });
   document.getElementById('perfRange').textContent =
-    period === 'inception' || period === 'ytd'
+    period === 'inception'
       ? 'Dec 1, 2025 → Current'
+      : period === 'ytd' ? 'Jan 1, 2026 → Current'
       : period === '3m' ? 'Last 3 months (estimated)' : 'Last 1 month (estimated)';
   renderPerformance();
 }
