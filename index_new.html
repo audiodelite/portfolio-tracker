@@ -71,6 +71,7 @@ canvas{max-height:320px}
 
 <div class="summary" id="summary"></div>
 
+<!-- Performance Tracking Section -->
 <div class="card" style="margin-bottom:24px" id="perfSection">
   <div class="section-title">
     📈 Performance Tracking
@@ -120,98 +121,23 @@ canvas{max-height:320px}
 <script>
 const INCEPTION_DATE = '2025-12-01';
 
-// Monthly prices from real market data
-const monthlyPrices = {
-  "ZS":{"current":154.67,"dec":224.92,"jan":200.01,"feb":146.99},
-  "UVIX":{"current":6.99,"dec":5.71,"jan":5.89,"feb":6.28},
-  "TLN":{"current":341.39,"dec":374.84,"jan":348.36,"feb":370.97},
-  "TMDX":{"current":148,"dec":121.65,"jan":133.98,"feb":145.26},
-  "TEM":{"current":51.4,"dec":59.05,"jan":59.82,"feb":53.25},
-  "ZETA":{"current":18.04,"dec":20.35,"jan":18.58,"feb":16.95},
-  "TE":{"current":6.51,"dec":6.68,"jan":8.33,"feb":6.16},
-  "TAN":{"current":54.47,"dec":49.12,"jan":53.85,"feb":55},
-  "SETM":{"current":36.02,"dec":28.95,"jan":34.73,"feb":38.63},
-  "RMBS":{"current":87.59,"dec":91.89,"jan":113.83,"feb":99.66},
-  "RIOT":{"current":15.29,"dec":12.67,"jan":15.47,"feb":16.29},
-  "SE":{"current":87.82,"dec":127.57,"jan":116.49,"feb":108.45},
-  "RBLX":{"current":66.97,"dec":81.03,"jan":65.76,"feb":68.66},
-  "RDDT":{"current":145.69,"dec":229.87,"jan":180.27,"feb":145.81},
-  "RBRK":{"current":53.87,"dec":76.48,"jan":55.95,"feb":51.96},
-  "SEI":{"current":47.6,"dec":45.97,"jan":55.19,"feb":49.63},
-  "RKT":{"current":16.43,"dec":19.36,"jan":17.93,"feb":18.19},
-  "ROOT":{"current":47.8,"dec":72.23,"jan":62.13,"feb":51.88},
-  "PRCT":{"current":26.26,"dec":31.46,"jan":28.96,"feb":22.69},
-  "NU":{"current":14.76,"dec":16.74,"jan":17.75,"feb":14.98},
-  "ONDS":{"current":10.02,"dec":9.76,"jan":10.36,"feb":10.08},
-  "ONON":{"current":43.91,"dec":46.48,"jan":45.25,"feb":46.48},
-  "MP":{"current":61.4,"dec":50.52,"jan":58.77,"feb":58.87},
-  "PLAB":{"current":35.26,"dec":32,"jan":34.57,"feb":37.43},
-  "OSCR":{"current":13.67,"dec":14.37,"jan":14.35,"feb":13.64},
-  "ORCL":{"current":149.01,"dec":194.91,"jan":164.58,"feb":145.4},
-  "MELI":{"current":1714.01,"dec":2014.26,"jan":2147.79,"feb":1757.58},
-  "MKSI":{"current":232.56,"dec":159.8,"jan":235.41,"feb":244.46},
-  "NOW":{"current":113.19,"dec":153.19,"jan":117.01,"feb":108.01},
-  "LAC":{"current":4.77,"dec":4.36,"jan":4.87,"feb":5.06},
-  "IOT":{"current":28.94,"dec":35.45,"jan":28.05,"feb":28.9},
-  "ISRG":{"current":497.42,"dec":566.36,"jan":504.22,"feb":503.51},
-  "GTLB":{"current":26.7,"dec":37.53,"jan":34.98,"feb":26.3},
-  "IREN":{"current":38.85,"dec":37.77,"jan":53.74,"feb":40.95},
-  "HROW":{"current":38.605,"dec":49,"jan":40.94,"feb":54.18},
-  "MDB":{"current":252.73,"dec":419.69,"jan":371.33,"feb":328.47},
-  "GOOG":{"current":303.56,"dec":313.8,"jan":338.53,"feb":311.43},
-  "HIMS":{"current":15.82,"dec":32.47,"jan":27.09,"feb":14.52},
-  "LITE":{"current":694.43,"dec":368.59,"jan":391.84,"feb":700.91},
-  "GLXY":{"current":20.68,"dec":22.36,"jan":28.26,"feb":20.59},
-  "FOUR":{"current":49.89,"dec":62.97,"jan":59.04,"feb":44.07},
-  "EOSE":{"current":6.06,"dec":11.46,"jan":14.64,"feb":5.695},
-  "FVRR":{"current":10.69,"dec":19.76,"jan":16.75,"feb":10.83},
-  "FLNC":{"current":14.92,"dec":19.78,"jan":30.77,"feb":15.54},
-  "FTAI":{"current":281.75,"dec":196.85,"jan":272.32,"feb":305.8},
-  "FIX":{"current":1391.16,"dec":933.29,"jan":1142.1,"feb":1429.37},
-  "GLBE":{"current":34.64,"dec":39.31,"jan":36.55,"feb":34.97},
-  "FCX":{"current":65.57,"dec":50.79,"jan":60.23,"feb":68.08},
-  "DUOL":{"current":101.61,"dec":175.5,"jan":134.06,"feb":101},
-  "CLPT":{"current":8.835,"dec":13.68,"jan":12.93,"feb":12.57},
-  "CVNA":{"current":318.99,"dec":422.02,"jan":401.11,"feb":334.16},
-  "DLO":{"current":11.94,"dec":14.14,"jan":13.46,"feb":12.24},
-  "CRCL":{"current":99.63,"dec":79.3,"jan":63.93,"feb":83.44},
-  "DAVE":{"current":208.76,"dec":221.41,"jan":163.69,"feb":193.27},
-  "CIFR":{"current":14.71,"dec":14.76,"jan":15.96,"feb":15.6},
-  "CPNG":{"current":19.21,"dec":23.59,"jan":20.16,"feb":19.08},
-  "CRDO":{"current":97.3,"dec":143.89,"jan":125.28,"feb":112.27},
-  "DDOG":{"current":111.77,"dec":135.99,"jan":129.32,"feb":111.96},
-  "CRM":{"current":196.05,"dec":264.91,"jan":212.29,"feb":194.79},
-  "AVAV":{"current":228.3,"dec":241.89,"jan":278.39,"feb":252.25},
-  "CELH":{"current":47.11,"dec":45.74,"jan":52.48,"feb":53.61},
-  "AXTI":{"current":41.76,"dec":16.35,"jan":18.54,"feb":37.9},
-  "ATEC":{"current":13.02,"dec":21.04,"jan":14.83,"feb":13.62},
-  "ASPN":{"current":3.34,"dec":2.83,"jan":3.37,"feb":3.12},
-  "AMD":{"current":190.95,"dec":214.16,"jan":236.73,"feb":200.21},
-  "APP":{"current":438.89,"dec":673.82,"jan":473.11,"feb":434.77},
-  "BABA":{"current":135.59,"dec":146.58,"jan":169.56,"feb":144.11},
-  "ASX":{"current":22.31,"dec":16.1,"jan":18.98,"feb":24.29},
-  "CCJ":{"current":117.79,"dec":91.49,"jan":123.39,"feb":118.4},
-  "ACMR":{"current":51.54,"dec":39.45,"jan":58.12,"feb":55.68},
-  "AMBA":{"current":57.45,"dec":70.84,"jan":64.04,"feb":60.34},
-  "ALAB":{"current":109.8,"dec":166.36,"jan":150.62,"feb":118.83}
-};
+// Monthly closing prices from Yahoo Finance (real data)
+const monthlyPrices = {"ZS":{"dec":224.92,"jan":200.01,"feb":146.99,"current":154.67},"UVIX":{"dec":5.71,"jan":5.89,"feb":6.28,"current":6.99},"TLN":{"dec":374.84,"jan":348.36,"feb":370.97,"current":341.39},"TMDX":{"dec":121.65,"jan":133.98,"feb":145.26,"current":148},"TEM":{"dec":59.05,"jan":59.82,"feb":53.25,"current":51.4},"ZETA":{"dec":20.35,"jan":18.58,"feb":16.95,"current":18.04},"TE":{"dec":6.68,"jan":8.33,"feb":6.16,"current":6.51},"TAN":{"dec":49.12,"jan":53.85,"feb":55,"current":54.47},"SETM":{"dec":28.95,"jan":34.73,"feb":38.63,"current":36.02},"RMBS":{"dec":91.89,"jan":113.83,"feb":99.66,"current":87.59},"RIOT":{"dec":12.67,"jan":15.47,"feb":16.29,"current":15.29},"SE":{"dec":127.57,"jan":116.49,"feb":108.45,"current":87.82},"RBLX":{"dec":81.03,"jan":65.76,"feb":68.66,"current":66.97},"RDDT":{"dec":229.87,"jan":180.27,"feb":145.81,"current":145.69},"RBRK":{"dec":76.48,"jan":55.95,"feb":51.96,"current":53.87},"SEI":{"dec":45.97,"jan":55.19,"feb":49.63,"current":47.6},"RKT":{"dec":19.36,"jan":17.93,"feb":18.19,"current":16.43},"ROOT":{"dec":72.23,"jan":62.13,"feb":51.88,"current":47.8},"PRCT":{"dec":31.46,"jan":28.96,"feb":22.69,"current":26.26},"NU":{"dec":16.74,"jan":17.75,"feb":14.98,"current":14.76},"ONDS":{"dec":9.76,"jan":10.36,"feb":10.08,"current":10.02},"ONON":{"dec":46.48,"jan":45.25,"feb":46.48,"current":43.91},"MP":{"dec":50.52,"jan":58.77,"feb":58.87,"current":61.4},"PLAB":{"dec":32,"jan":34.57,"feb":37.43,"current":35.26},"OSCR":{"dec":14.37,"jan":14.35,"feb":13.64,"current":13.67},"ORCL":{"dec":194.91,"jan":164.58,"feb":145.4,"current":149.01},"MELI":{"dec":2014.26,"jan":2147.79,"feb":1757.58,"current":1714.01},"MKSI":{"dec":159.8,"jan":235.41,"feb":244.46,"current":232.56},"NOW":{"dec":153.19,"jan":117.01,"feb":108.01,"current":113.19},"LAC":{"dec":4.36,"jan":4.87,"feb":5.06,"current":4.77},"IOT":{"dec":35.45,"jan":28.05,"feb":28.9,"current":28.94},"ISRG":{"dec":566.36,"jan":504.22,"feb":503.51,"current":497.42},"GTLB":{"dec":37.53,"jan":34.98,"feb":26.3,"current":26.7},"IREN":{"dec":37.77,"jan":53.74,"feb":40.95,"current":38.85},"HROW":{"dec":49,"jan":40.94,"feb":54.18,"current":38.6},"MDB":{"dec":419.69,"jan":371.33,"feb":328.47,"current":252.73},"GOOG":{"dec":313.8,"jan":338.53,"feb":311.43,"current":303.56},"HIMS":{"dec":32.47,"jan":27.09,"feb":14.52,"current":15.82},"LITE":{"dec":368.59,"jan":391.84,"feb":700.91,"current":694.43},"GLXY":{"dec":22.36,"jan":28.26,"feb":20.59,"current":20.68},"FOUR":{"dec":62.97,"jan":59.04,"feb":44.07,"current":49.89},"EOSE":{"dec":11.46,"jan":14.64,"feb":5.7,"current":6.06},"FVRR":{"dec":19.76,"jan":16.75,"feb":10.83,"current":10.69},"FLNC":{"dec":19.78,"jan":30.77,"feb":15.54,"current":14.92},"FTAI":{"dec":196.85,"jan":272.32,"feb":305.8,"current":281.75},"FIX":{"dec":933.29,"jan":1142.1,"feb":1429.37,"current":1391.16},"GLBE":{"dec":39.31,"jan":36.55,"feb":34.97,"current":34.64},"FCX":{"dec":50.79,"jan":60.23,"feb":68.08,"current":65.57},"DUOL":{"dec":175.5,"jan":134.06,"feb":101,"current":101.61},"CLPT":{"dec":13.68,"jan":12.93,"feb":12.57,"current":8.84},"CVNA":{"dec":422.02,"jan":401.11,"feb":334.16,"current":318.99},"DLO":{"dec":14.14,"jan":13.46,"feb":12.24,"current":11.94},"CRCL":{"dec":79.3,"jan":63.93,"feb":83.44,"current":99.63},"DAVE":{"dec":221.41,"jan":163.69,"feb":193.27,"current":208.76},"CIFR":{"dec":14.76,"jan":15.96,"feb":15.6,"current":14.71},"CPNG":{"dec":23.59,"jan":20.16,"feb":19.08,"current":19.21},"CRDO":{"dec":143.89,"jan":125.28,"feb":112.27,"current":97.3},"DDOG":{"dec":135.99,"jan":129.32,"feb":111.96,"current":111.77},"CRM":{"dec":264.91,"jan":212.29,"feb":194.79,"current":196.05},"AVAV":{"dec":241.89,"jan":278.39,"feb":252.25,"current":228.3},"CELH":{"dec":45.74,"jan":52.48,"feb":53.61,"current":47.11},"AXTI":{"dec":16.35,"jan":18.54,"feb":37.9,"current":41.76},"ATEC":{"dec":21.04,"jan":14.83,"feb":13.62,"current":13.02},"ASPN":{"dec":2.83,"jan":3.37,"feb":3.12,"current":3.34},"AMD":{"dec":214.16,"jan":236.73,"feb":200.21,"current":190.95},"APP":{"dec":673.82,"jan":473.11,"feb":434.77,"current":438.89},"BABA":{"dec":146.58,"jan":169.56,"feb":144.11,"current":135.59},"ASX":{"dec":16.1,"jan":18.98,"feb":24.29,"current":22.31},"CCJ":{"dec":91.49,"jan":123.39,"feb":118.4,"current":117.79},"ACMR":{"dec":39.45,"jan":58.12,"feb":55.68,"current":51.54},"AMBA":{"dec":70.84,"jan":64.04,"feb":60.34,"current":57.45},"ALAB":{"dec":166.36,"jan":150.62,"feb":118.83,"current":109.8}};
 
-// raw: [ticker, sector, shares, value, weight, costBasis, currentPrice]
-// currentPrice updated with real prices from prices_clean.json
 const raw = [
 ["ZS","INFORMATION TECHNOLOGY",11563,2600750,1.55,282.822,154.67],
 ["ZETA","INFORMATION TECHNOLOGY",151235,3077632,1.83,19.0298,18.04],
 ["YNDX","COMMUNICATIONS",85862,7187508,4.27,100.7177,83.71],
 ["UVIX","FINANCE",881126,5031229,2.99,9.5492,6.99],
-["TMDX","HEALTH CARE",74562,9070467,5.39,122.6274,148],
+["TMDX","HEALTH CARE",74562,9070467,5.39,122.6274,148.00],
 ["TLN","ENERGY",2406,901865,0.54,392.6707,341.39],
-["TEM","HEALTH CARE",21635,1277547,0.76,79.1954,51.4],
+["TEM","HEALTH CARE",21635,1277547,0.76,79.1954,51.40],
 ["TE","INDUSTRIALS",260120,1737602,1.03,3.8074,6.51],
 ["TAN","ENERGY",20836,1023464,0.61,46.8208,54.47],
 ["SETM","FINANCE",46972,1359839,0.81,26.2125,36.02],
-["SEI","ENERGY",28151,1294101,0.77,44.6393,47.6],
+["SEI","ENERGY",28151,1294101,0.77,44.6393,47.60],
 ["SE","INFORMATION TECHNOLOGY",39586,5049986,3.00,158.0401,87.82],
-["ROOT","FINANCE",22718,1640921,0.97,83.6681,47.8],
+["ROOT","FINANCE",22718,1640921,0.97,83.6681,47.80],
 ["RMBS","INFORMATION TECHNOLOGY",9933,912743,0.54,96.6559,87.59],
 ["RKT","FINANCE",114798,2222489,1.32,18.4069,16.43],
 ["RIOT","HEALTH CARE",68830,872076,0.52,16.9171,15.29],
@@ -226,7 +152,7 @@ const raw = [
 ["ONDS","INFORMATION TECHNOLOGY",214099,2089606,1.24,7.6586,10.02],
 ["NU","INFORMATION TECHNOLOGY",158536,2653893,1.58,15.9686,14.76],
 ["NOW","INFORMATION TECHNOLOGY",5036,771465,0.46,175.2076,113.19],
-["MP","MATERIALS",58376,2949156,1.75,64.4459,61.4],
+["MP","MATERIALS",58376,2949156,1.75,64.4459,61.40],
 ["MKSI","INFORMATION TECHNOLOGY",8021,1281756,0.76,140.5171,232.56],
 ["MELI","COMMUNICATIONS",1227,2471497,1.47,2178.0029,1714.01],
 ["MDB","INFORMATION TECHNOLOGY",2675,1122671,0.67,353.5306,252.73],
@@ -237,7 +163,7 @@ const raw = [
 ["IOT","INFORMATION TECHNOLOGY",25714,911561,0.54,38.6511,28.94],
 ["HROW","HEALTH CARE",93953,4603697,2.73,42.1528,38.605],
 ["HIMS","HEALTH CARE",187657,6093223,3.62,45.1949,15.82],
-["GTLB","INFORMATION TECHNOLOGY",24439,917196,0.54,44.4959,26.7],
+["GTLB","INFORMATION TECHNOLOGY",24439,917196,0.54,44.4959,26.70],
 ["GOOG","COMMUNICATIONS",4394,1378837,0.82,275.7164,303.56],
 ["GLXY","FINANCE",44102,986121,0.59,30.6702,20.68],
 ["GLBE","INFORMATION TECHNOLOGY",42244,1660612,0.99,36.8609,34.64],
@@ -254,7 +180,7 @@ const raw = [
 ["DAVE","FINANCE",5293,1171923,0.70,215.5942,208.76],
 ["CVNA","CONSUMER DISCRETIONARY",2576,1087124,0.65,371.9901,318.99],
 ["CRM","INFORMATION TECHNOLOGY",1972,522403,0.31,247.8412,196.05],
-["CRDO","INFORMATION TECHNOLOGY",34378,4946650,2.94,153.3844,97.3],
+["CRDO","INFORMATION TECHNOLOGY",34378,4946650,2.94,153.3844,97.30],
 ["CRCL","FINANCE",11203,888398,0.53,109.3001,99.63],
 ["CPNG","CONSUMER DISCRETIONARY",285513,6735252,4.00,29.2745,19.21],
 ["CLPT","HEALTH CARE",363409,4971435,2.95,17.2422,8.835],
@@ -263,14 +189,14 @@ const raw = [
 ["CCJ","ENERGY",9816,898066,0.53,87.918,117.79],
 ["BABA","COMMUNICATIONS",6185,906597,0.54,161.5111,135.59],
 ["AXTI","INFORMATION TECHNOLOGY",44543,728278,0.43,8.2465,41.76],
-["AVAV","INDUSTRIALS",5602,1355068,0.80,302.5494,228.3],
+["AVAV","INDUSTRIALS",5602,1355068,0.80,302.5494,228.30],
 ["ATEC","HEALTH CARE",52726,1109355,0.66,17.7538,13.02],
 ["ASX","INFORMATION TECHNOLOGY",84380,1358518,0.81,13.4546,22.31],
 ["ASPN","ENERGY",372001,1052763,0.63,5.5602,3.34],
 ["APP","INFORMATION TECHNOLOGY",8332,5614268,3.34,621.9205,438.89],
 ["AMD","INFORMATION TECHNOLOGY",3856,825801,0.49,208.4018,190.95],
 ["AMBA","INFORMATION TECHNOLOGY",33075,2343033,1.39,81.2747,57.45],
-["ALAB","INFORMATION TECHNOLOGY",29969,4985643,2.96,179.3225,109.8],
+["ALAB","INFORMATION TECHNOLOGY",29969,4985643,2.96,179.3225,109.80],
 ["ACMR","INDUSTRIALS",29491,912743,0.54,null,51.54]
 ];
 
@@ -289,18 +215,57 @@ const totalCurrentValue = positions.reduce((s,p) => s + (p.currentPrice !== null
 const totalPL = positions.reduce((s,p) => s + (p.plDollar || 0), 0);
 const totalPLPct = totalCostBasis > 0 ? ((totalCurrentValue - totalCostBasis) / totalCostBasis) * 100 : 0;
 
+// Sector aggregation
 const sectorMap = {};
 positions.forEach(p => { sectorMap[p.sector] = (sectorMap[p.sector]||0) + p.value; });
 const sectors = Object.entries(sectorMap).sort((a,b)=>b[1]-a[1]);
 const topSector = sectors[0];
 
-document.getElementById('ts').textContent = new Date().toLocaleString();
+// Summary
+document.getElementById('ts').textContent = '2026-03-03 23:23 CET';
 document.getElementById('summary').innerHTML = `
   <div class="card"><div class="label">Total Portfolio Value</div><div class="value">$${(totalValue/1e6).toFixed(1)}M</div></div>
   <div class="card"><div class="label">Positions</div><div class="value">${numPositions}</div></div>
   <div class="card"><div class="label">Top Sector</div><div class="value" style="font-size:18px">${topSector[0]}<br><span style="font-size:14px;color:var(--muted)">${(topSector[1]/totalValue*100).toFixed(1)}%</span></div></div>
   <div class="card"><div class="label">Total Unrealized P/L</div><div class="value ${totalPL>=0?'gain':'loss'}">$${(totalPL/1e6).toFixed(2)}M</div></div>
 `;
+
+// === HELPER: Calculate portfolio value at a given date using monthlyPrices ===
+function getPortfolioValueAtDate(dateStr) {
+  let total = 0;
+  for (const p of positions) {
+    if (p.currentPrice === null) continue;
+    const mp = monthlyPrices[p.ticker];
+    if (mp) {
+      // Find the closest history entry for this date
+      const entry = mp.history.find(h => h.date === dateStr);
+      if (entry) {
+        total += p.shares * entry.close;
+        continue;
+      }
+    }
+    // Fallback: use currentPrice (for YNDX or missing data)
+    if (p.ticker === 'YNDX') {
+      total += p.shares * p.currentPrice;
+    }
+  }
+  return total;
+}
+
+function getPortfolioValueCurrent() {
+  let total = 0;
+  for (const p of positions) {
+    if (p.currentPrice === null) continue;
+    total += p.shares * p.currentPrice;
+  }
+  return total;
+}
+
+// Pre-calculate monthly portfolio values
+const decValue = getPortfolioValueAtDate('2025-12-01');
+const janValue = getPortfolioValueAtDate('2026-01-01');
+const febValue = getPortfolioValueAtDate('2026-02-01');
+const marValue = getPortfolioValueCurrent();
 
 // === PERFORMANCE TRACKING ===
 let currentPeriod = 'inception';
@@ -311,46 +276,25 @@ function getValidPositions() {
   return positions.filter(p => p.costBasis !== null && p.currentPrice !== null);
 }
 
-// Get baseline price for a position given the selected period
-function getBaselinePrice(ticker, costBasis, period) {
-  const mp = monthlyPrices[ticker];
+// Get baseline and current values for each period
+function getPeriodData(period) {
   switch(period) {
     case 'inception':
-    case '3m':
-      return costBasis; // Dec 1 baseline = cost basis from 13F
     case 'ytd':
-      return mp ? mp.dec : null; // Jan 1 baseline = Dec 31 close
+    case '3m':
+      // All use Dec 2025 as baseline (inception ~3mo ago, YTD = Dec close)
+      return { baseline: decValue, current: marValue, label: 'Since Inception (Dec 1, 2025)' };
     case '1m':
-      return mp ? mp.feb : null; // 1M baseline = Feb 28 close
+      return { baseline: febValue, current: marValue, label: 'Last 1 Month (Feb → Current)' };
     default:
-      return costBasis;
+      return { baseline: decValue, current: marValue, label: '' };
   }
-}
-
-function calcPeriodPL(period) {
-  const valid = getValidPositions();
-  let totalPeriodPL = 0;
-  let totalBaseline = 0;
-  const perPosition = [];
-
-  for (const p of valid) {
-    const baseline = getBaselinePrice(p.ticker, p.costBasis, period);
-    if (baseline === null || baseline === undefined) continue;
-    const pl = (p.currentPrice - baseline) * p.shares;
-    const pct = baseline !== 0 ? ((p.currentPrice - baseline) / baseline) * 100 : 0;
-    totalPeriodPL += pl;
-    totalBaseline += baseline * p.shares;
-    perPosition.push({ ...p, periodPL: pl, periodPct: pct });
-  }
-
-  const totalPeriodPct = totalBaseline > 0 ? (totalPeriodPL / totalBaseline) * 100 : 0;
-  return { totalPeriodPL, totalPeriodPct, perPosition };
 }
 
 function getPeriodLabel(period) {
   switch(period) {
     case 'inception': return 'Since Inception (Dec 1, 2025)';
-    case 'ytd': return 'Year to Date (Jan 1, 2026)';
+    case 'ytd': return 'Year to Date (Dec 2025 close)';
     case '3m': return 'Last 3 Months';
     case '1m': return 'Last 1 Month';
     default: return '';
@@ -366,28 +310,56 @@ function setPeriod(period) {
   document.querySelectorAll('.period-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.period === period);
   });
+  const pd = getPeriodData(period);
   document.getElementById('perfRange').textContent =
-    period === 'inception' ? 'Dec 1, 2025 → Current'
-    : period === 'ytd' ? 'Jan 1, 2026 → Current'
-    : period === '3m' ? 'Dec 1, 2025 → Current'
-    : 'Feb 28, 2026 → Current';
+    period === 'inception' || period === 'ytd' || period === '3m'
+      ? 'Dec 1, 2025 → Current'
+      : 'Feb 1, 2026 → Current';
   renderPerformance();
 }
 window.setPeriod = setPeriod;
 
-function renderPerformance() {
-  const { totalPeriodPL, totalPeriodPct, perPosition } = calcPeriodPL(currentPeriod);
+// Per-ticker return for a given period (using real monthly data)
+function getTickerPeriodReturn(p, period) {
+  const mp = monthlyPrices[p.ticker];
+  if (!mp) return { pl: null, pct: null };
+  let basePrice;
+  if (period === '1m') {
+    const feb = mp.history.find(h => h.date === '2026-02-01');
+    basePrice = feb ? feb.close : null;
+  } else {
+    const dec = mp.history.find(h => h.date === '2025-12-01');
+    basePrice = dec ? dec.close : null;
+  }
+  if (!basePrice) return { pl: null, pct: null };
+  const curPrice = mp.current;
+  return {
+    pl: (curPrice - basePrice) * p.shares,
+    pct: ((curPrice - basePrice) / basePrice) * 100
+  };
+}
 
-  // Best & worst by period return %
-  const sorted = [...perPosition].sort((a,b) => b.periodPct - a.periodPct);
-  const best = sorted[0];
-  const worst = sorted[sorted.length - 1];
+function renderPerformance() {
+  const valid = getValidPositions();
+  const pd = getPeriodData(currentPeriod);
+  const periodPL = pd.current - pd.baseline;
+  const periodPLPct = pd.baseline > 0 ? ((pd.current - pd.baseline) / pd.baseline) * 100 : 0;
+
+  // Best & worst performers for this period
+  const withReturns = valid.map(p => {
+    const ret = getTickerPeriodReturn(p, currentPeriod);
+    return { ...p, periodPL: ret.pl, periodPct: ret.pct };
+  }).filter(p => p.periodPct !== null);
+
+  const sorted = [...withReturns].sort((a,b) => (b.periodPct||0) - (a.periodPct||0));
+  const best = sorted[0] || { ticker: 'N/A', periodPct: 0, periodPL: 0 };
+  const worst = sorted[sorted.length - 1] || { ticker: 'N/A', periodPct: 0, periodPL: 0 };
 
   document.getElementById('perfSummary').innerHTML = `
     <div class="perf-card">
       <div class="perf-label">${getPeriodLabel(currentPeriod)}</div>
-      <div class="perf-value ${totalPeriodPL>=0?'gain':'loss'}">${totalPeriodPL>=0?'+':''}$${(totalPeriodPL/1e6).toFixed(2)}M</div>
-      <div class="perf-sub">${totalPeriodPct>=0?'+':''}${totalPeriodPct.toFixed(2)}% return</div>
+      <div class="perf-value ${periodPL>=0?'gain':'loss'}">${periodPL>=0?'+':''}$${(periodPL/1e6).toFixed(2)}M</div>
+      <div class="perf-sub">${periodPLPct>=0?'+':''}${periodPLPct.toFixed(2)}% return</div>
     </div>
     <div class="perf-card">
       <div class="perf-label">Annualized Return</div>
@@ -397,12 +369,12 @@ function renderPerformance() {
     <div class="perf-card">
       <div class="perf-label">🏆 Best Performer</div>
       <div class="perf-value gain" style="font-size:18px">${best.ticker}</div>
-      <div class="perf-sub gain">+${best.periodPct.toFixed(1)}% · +$${(best.periodPL/1e3).toFixed(0)}K</div>
+      <div class="perf-sub gain">+${(best.periodPct||0).toFixed(1)}% · +$${((best.periodPL||0)/1e3).toFixed(0)}K</div>
     </div>
     <div class="perf-card">
       <div class="perf-label">📉 Worst Performer</div>
       <div class="perf-value loss" style="font-size:18px">${worst.ticker}</div>
-      <div class="perf-sub loss">${worst.periodPct.toFixed(1)}% · $${(worst.periodPL/1e3).toFixed(0)}K</div>
+      <div class="perf-sub loss">${(worst.periodPct||0).toFixed(1)}% · $${((worst.periodPL||0)/1e3).toFixed(0)}K</div>
     </div>
   `;
 
@@ -415,31 +387,12 @@ function renderPerfChart() {
   const ctx = document.getElementById('perfChart');
   if (perfChart) perfChart.destroy();
 
-  // Real portfolio values at each month-end
-  const valid = getValidPositions();
-  const labels = ['Dec 1', 'Dec 31', 'Jan 31', 'Feb 28', 'Current'];
-  const values = [0, 0, 0, 0, 0];
+  // Real monthly portfolio values
+  const labels = ['Dec 2025', 'Jan 2026', 'Feb 2026', 'Mar 2026'];
+  const values = [decValue, janValue, febValue, marValue];
 
-  for (const p of valid) {
-    const mp = monthlyPrices[p.ticker];
-    values[0] += p.costBasis * p.shares; // inception
-    if (mp) {
-      values[1] += mp.dec * p.shares;
-      values[2] += mp.jan * p.shares;
-      values[3] += mp.feb * p.shares;
-      values[4] += mp.current * p.shares;
-    } else {
-      // YNDX: use costBasis for dec baseline, current for current
-      values[1] += p.currentPrice * p.shares; // approximate
-      values[2] += p.currentPrice * p.shares;
-      values[3] += p.currentPrice * p.shares;
-      values[4] += p.currentPrice * p.shares;
-    }
-  }
-
-  const inceptionValue = values[0];
-  const plData = values.map(v => v - inceptionValue);
-  const finalPL = plData[plData.length - 1];
+  // P/L relative to Dec baseline
+  const plData = values.map(v => v - decValue);
 
   perfChart = new Chart(ctx, {
     type: 'line',
@@ -448,12 +401,12 @@ function renderPerfChart() {
       datasets: [{
         label: 'Cumulative P/L ($)',
         data: plData,
-        borderColor: finalPL >= 0 ? '#00d4aa' : '#ff4757',
-        backgroundColor: finalPL >= 0 ? 'rgba(0,212,170,0.1)' : 'rgba(255,71,87,0.1)',
+        borderColor: plData[plData.length-1] >= 0 ? '#00d4aa' : '#ff4757',
+        backgroundColor: plData[plData.length-1] >= 0 ? 'rgba(0,212,170,0.1)' : 'rgba(255,71,87,0.1)',
         fill: true,
         tension: 0.3,
         pointRadius: 5,
-        pointBackgroundColor: finalPL >= 0 ? '#00d4aa' : '#ff4757',
+        pointBackgroundColor: plData[plData.length-1] >= 0 ? '#00d4aa' : '#ff4757',
         borderWidth: 2
       }]
     },
@@ -461,7 +414,15 @@ function renderPerfChart() {
       responsive: true,
       plugins: {
         title: { display: true, text: 'Portfolio P/L Over Time', color: '#e4e4e7', font: { size: 14 } },
-        legend: { display: false }
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = ctx.raw;
+              return `${v>=0?'+':''}$${(v/1e6).toFixed(2)}M`;
+            }
+          }
+        }
       },
       scales: {
         x: { ticks: { color: '#71717a' }, grid: { color: 'rgba(255,255,255,0.04)' } },
@@ -475,8 +436,12 @@ function renderTopMoversChart() {
   const ctx = document.getElementById('topMoversChart');
   if (topMoversChart) topMoversChart.destroy();
 
-  const { perPosition } = calcPeriodPL(currentPeriod);
-  const sorted = [...perPosition].sort((a,b) => Math.abs(b.periodPL) - Math.abs(a.periodPL)).slice(0, 10);
+  const valid = getValidPositions();
+  const withReturns = valid.map(p => {
+    const ret = getTickerPeriodReturn(p, currentPeriod);
+    return { ...p, periodPL: ret.pl || p.plDollar || 0 };
+  });
+  const sorted = [...withReturns].sort((a,b) => Math.abs(b.periodPL) - Math.abs(a.periodPL)).slice(0, 10);
 
   topMoversChart = new Chart(ctx, {
     type: 'bar',
@@ -505,55 +470,36 @@ function renderTopMoversChart() {
 }
 
 function renderMonthlyTable() {
-  const valid = getValidPositions();
-
-  // Calculate real monthly P/L
-  let decPL = 0, janPL = 0, febPL = 0, marPL = 0;
-  let inceptionTotal = 0;
-
-  for (const p of valid) {
-    const mp = monthlyPrices[p.ticker];
-    if (!mp) continue;
-    decPL += (mp.dec - p.costBasis) * p.shares;
-    janPL += (mp.jan - mp.dec) * p.shares;
-    febPL += (mp.feb - mp.jan) * p.shares;
-    marPL += (mp.current - mp.feb) * p.shares;
-  }
-  // Add YNDX inception P/L (no monthly data)
-  const yndx = valid.find(p => p.ticker === 'YNDX');
-  if (yndx) {
-    decPL += (yndx.currentPrice - yndx.costBasis) * yndx.shares * 0; // can't split, exclude from monthly
-  }
-
-  inceptionTotal = decPL + janPL + febPL + marPL;
-  const inceptionBasis = valid.reduce((s, p) => {
-    const mp = monthlyPrices[p.ticker];
-    return s + (mp ? p.costBasis * p.shares : 0);
-  }, 0);
-
   const months = [
-    { label: 'December 2025', pl: decPL, basis: inceptionBasis, status: '✅ Complete' },
-    { label: 'January 2026', pl: janPL, basis: inceptionBasis, status: '✅ Complete' },
-    { label: 'February 2026', pl: febPL, basis: inceptionBasis, status: '✅ Complete' },
-    { label: 'March 2026 (MTD)', pl: marPL, basis: inceptionBasis, status: '⏳ In Progress' },
+    { label: 'December 2025', startVal: decValue, endVal: decValue, status: '✅ Baseline' },
+    { label: 'January 2026', startVal: decValue, endVal: janValue, status: '✅ Complete' },
+    { label: 'February 2026', startVal: janValue, endVal: febValue, status: '✅ Complete' },
+    { label: 'March 2026', startVal: febValue, endVal: marValue, status: '⏳ In Progress' }
   ];
 
   const tbl = document.getElementById('monthlyTable');
   tbl.innerHTML = `
-    <thead><tr><th>Month</th><th>P/L ($)</th><th>Return (%)</th><th>Status</th></tr></thead>
+    <thead><tr><th>Month</th><th>Start Value</th><th>End Value</th><th>P/L ($)</th><th>Return (%)</th><th>Status</th></tr></thead>
     <tbody>${months.map(m => {
-      const pct = m.basis > 0 ? (m.pl / m.basis) * 100 : 0;
-      return `<tr>
+      const pl = m.endVal - m.startVal;
+      const pct = m.startVal > 0 ? ((m.endVal - m.startVal) / m.startVal) * 100 : 0;
+      const isBaseline = m.label === 'December 2025';
+      return `
+      <tr>
         <td>${m.label}</td>
-        <td class="${m.pl>=0?'gain':'loss'}">${m.pl>=0?'+':''}$${(m.pl/1e3).toFixed(0)}K</td>
-        <td class="${pct>=0?'gain':'loss'}">${pct>=0?'+':''}${pct.toFixed(2)}%</td>
+        <td>$${(m.startVal/1e6).toFixed(2)}M</td>
+        <td>$${(m.endVal/1e6).toFixed(2)}M</td>
+        <td class="${isBaseline?'na':pl>=0?'gain':'loss'}">${isBaseline?'—':(pl>=0?'+':'')+'$'+(pl/1e3).toFixed(0)+'K'}</td>
+        <td class="${isBaseline?'na':pct>=0?'gain':'loss'}">${isBaseline?'—':(pct>=0?'+':'')+pct.toFixed(2)+'%'}</td>
         <td style="color:var(--muted)">${m.status}</td>
       </tr>`;
     }).join('')}
     <tr style="font-weight:700;border-top:2px solid var(--border)">
-      <td>Total</td>
-      <td class="${inceptionTotal>=0?'gain':'loss'}">${inceptionTotal>=0?'+':''}$${(inceptionTotal/1e3).toFixed(0)}K</td>
-      <td class="${inceptionTotal>=0?'gain':'loss'}">${inceptionBasis>0?(inceptionTotal>=0?'+':'')+(inceptionTotal/inceptionBasis*100).toFixed(2)+'%':'0.00%'}</td>
+      <td>Total (Since Inception)</td>
+      <td>$${(decValue/1e6).toFixed(2)}M</td>
+      <td>$${(marValue/1e6).toFixed(2)}M</td>
+      <td class="${marValue-decValue>=0?'gain':'loss'}">${marValue-decValue>=0?'+':''}$${((marValue-decValue)/1e3).toFixed(0)}K</td>
+      <td class="${marValue-decValue>=0?'gain':'loss'}">${decValue>0?((marValue-decValue)/decValue*100>=0?'+':'')+((marValue-decValue)/decValue*100).toFixed(2)+'%':'—'}</td>
       <td style="color:var(--muted)">Dec 1, 2025 → Now</td>
     </tr>
     </tbody>
@@ -584,8 +530,6 @@ async function refreshPrices() {
             pos.plDollar = (pos.currentPrice - pos.costBasis) * pos.shares;
             pos.plPct = ((pos.currentPrice - pos.costBasis) / pos.costBasis) * 100;
           }
-          // Update monthlyPrices current
-          if (monthlyPrices[ticker]) monthlyPrices[ticker].current = meta.regularMarketPrice;
           updated++;
         }
       }
@@ -700,6 +644,7 @@ function render(){
   renderBody(data);
 }
 
+// Sector filter options
 const sel = document.getElementById('sectorFilter');
 sectors.forEach(s => { const o=document.createElement('option'); o.value=s[0]; o.textContent=s[0]; sel.appendChild(o); });
 
