@@ -347,7 +347,7 @@ document.getElementById('summary').innerHTML = `
   <div class="card"><div class="label">Total Portfolio Value</div><div class="value">$${(totalValue/1e6).toFixed(1)}M</div></div>
   <div class="card"><div class="label">Positions</div><div class="value">${numPositions}</div></div>
   <div class="card"><div class="label">Top Sector</div><div class="value" style="font-size:18px">${topSector[0]}<br><span style="font-size:14px;color:var(--muted)">${(topSector[1]/totalValue*100).toFixed(1)}%</span></div></div>
-  <div class="card"><div class="label">Total Return</div><div class="value ${totalPLPct>=0?'gain':'loss'}">${totalPLPct>=0?'+':''}${totalPLPct.toFixed(2)}%</div></div>
+  <div class="card"><div class="label">Total Return</div><div class="value" id="totalReturnCard"></div></div>
 `;
 
 // === THEME TOGGLE ===
@@ -826,6 +826,11 @@ window.refreshPrices = refreshPrices;
 
 // Initialize
 renderPerformance();
+// Sync total return card with inception calc
+const _incep = calcPeriodPL('inception');
+const _trEl = document.getElementById('totalReturnCard');
+_trEl.className = _incep.totalPeriodPct>=0?'gain':'loss';
+_trEl.textContent = (_incep.totalPeriodPct>=0?'+':'')+_incep.totalPeriodPct.toFixed(2)+'%';
 renderSectorPerfChart();
 renderTreemap();
 renderRiskMetrics();
