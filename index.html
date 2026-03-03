@@ -119,6 +119,8 @@ canvas{max-height:320px}
     <button class="period-btn" data-period="ytd" onclick="setPeriod('ytd')">YTD</button>
     <button class="period-btn" data-period="3m" onclick="setPeriod('3m')">3M</button>
     <button class="period-btn" data-period="1m" onclick="setPeriod('1m')">1M</button>
+    <span style="width:1px;height:24px;background:var(--border);margin:0 8px"></span>
+    <button class="period-btn" id="top10Toggle" onclick="toggleTop10()">Top 10 Only</button>
   </div>
   <div class="perf-summary" id="perfSummary"></div>
   <div class="charts" style="margin-bottom:16px">
@@ -377,10 +379,27 @@ initTheme();
 let currentPeriod = 'inception';
 let perfChart = null;
 let topMoversChart = null;
+let top10Mode = false;
+
+// Top 10 by filed value, with weights re-normalized
+const top10Positions = (() => {
+  const valid = positions.filter(p => p.costBasis !== null && p.currentPrice !== null);
+  const sorted = [...valid].sort((a,b) => b.value - a.value).slice(0, 10);
+  const totalWeight = sorted.reduce((s,p) => s + p.weight, 0);
+  return sorted.map(p => ({ ...p, weight: (p.weight / totalWeight) * 100 }));
+})();
 
 function getValidPositions() {
+  if (top10Mode) return top10Positions;
   return positions.filter(p => p.costBasis !== null && p.currentPrice !== null);
 }
+
+function toggleTop10() {
+  top10Mode = !top10Mode;
+  document.getElementById('top10Toggle').classList.toggle('active', top10Mode);
+  renderPerformance();
+}
+window.toggleTop10 = toggleTop10;
 
 function getBaselinePrice(ticker, costBasis, period) {
   const mp = monthlyPrices[ticker];
@@ -450,16 +469,28 @@ function renderPerformance() {
   const sorted = [...perPosition].sort((a,b) => b.periodPct - a.periodPct);
   const best = sorted[0];
   const worst = sorted[sorted.length - 1];
+  const modeLabel = top10Mode ? ' (Top 10)' : '';
+
+  // Update subtitle
+  const rangeEl = document.getElementById('perfRange');
+  const baseRange = currentPeriod === 'inception' ? 'Dec 1, 2025 → Current'
+    : currentPeriod === 'ytd' ? 'Jan 1, 2026 → Current'
+    : currentPeriod === '3m' ? 'Dec 1, 2025 → Current'
+    : 'Feb 28, 2026 → Current';
+  rangeEl.textContent = baseRange + modeLabel;
+
+  // Annualized uses the same period data in top10 mode
+  const annPct = (totalPeriodPct / getDaysSinceInception()) * 365;
 
   document.getElementById('perfSummary').innerHTML = `
     <div class="perf-card">
-      <div class="perf-label">${getPeriodLabel(currentPeriod)}</div>
+      <div class="perf-label">${getPeriodLabel(currentPeriod)}${modeLabel}</div>
       <div class="perf-value ${totalPeriodPct>=0?'gain':'loss'}">${totalPeriodPct>=0?'+':''}${totalPeriodPct.toFixed(2)}%</div>
       <div class="perf-sub">Period return</div>
     </div>
     <div class="perf-card">
       <div class="perf-label">Annualized Return</div>
-      <div class="perf-value ${totalPLPct>=0?'gain':'loss'}">${((totalPLPct / getDaysSinceInception()) * 365).toFixed(1)}%</div>
+      <div class="perf-value ${annPct>=0?'gain':'loss'}">${annPct.toFixed(1)}%</div>
       <div class="perf-sub">Based on ${getDaysSinceInception()} days</div>
     </div>
     <div class="perf-card">
