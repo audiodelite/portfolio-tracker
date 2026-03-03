@@ -76,7 +76,7 @@ canvas{max-height:320px}
 <div class="card" style="margin-bottom:24px" id="perfSection">
   <div class="section-title">
     📈 Performance Tracking
-    <span class="perf-range" id="perfRange">Dec 31, 2025 → Current</span>
+    <span class="perf-range" id="perfRange">Dec 1, 2025 → Current</span>
     <button class="refresh-btn" id="refreshBtn" onclick="refreshPrices()" style="margin-left:auto">🔄 Refresh Prices</button>
   </div>
   <div class="period-btns">
@@ -120,7 +120,7 @@ canvas{max-height:320px}
 </div>
 
 <script>
-const INCEPTION_DATE = '2025-12-31';
+const INCEPTION_DATE = '2025-12-01';
 const raw = [
 ["ZS","INFORMATION TECHNOLOGY",11563,2600750,1.55,282.822,224.92],
 ["ZETA","INFORMATION TECHNOLOGY",151235,3077632,1.83,19.0298,20.35],
@@ -237,17 +237,17 @@ function getValidPositions() {
 }
 
 // Calculate period-adjusted returns
-// Since inception = Dec 31, 2025, and we only have cost basis (Dec 31) and current prices,
+// Since inception = Dec 1, 2025, and we only have cost basis (Dec 1) and current prices,
 // for sub-periods we estimate using linear interpolation of the total return
 function getPeriodFraction(period) {
   const now = new Date();
-  const inception = new Date('2025-12-31');
+  const inception = new Date('2025-12-01');
   const totalDays = (now - inception) / (1000*60*60*24);
   if (totalDays <= 0) return 1;
 
   switch(period) {
     case 'inception':
-    case 'ytd': // YTD = same as inception since inception is Dec 31
+    case 'ytd': // YTD = same as inception since inception is Dec 1
       return 1;
     case '3m': {
       const d = Math.min(90, totalDays);
@@ -263,7 +263,7 @@ function getPeriodFraction(period) {
 
 function getPeriodLabel(period) {
   switch(period) {
-    case 'inception': return 'Since Inception (Dec 31, 2025)';
+    case 'inception': return 'Since Inception (Dec 1, 2025)';
     case 'ytd': return 'Year to Date (Jan 1, 2026)';
     case '3m': return 'Last 3 Months';
     case '1m': return 'Last 1 Month';
@@ -272,7 +272,7 @@ function getPeriodLabel(period) {
 }
 
 function getDaysSinceInception() {
-  return Math.max(1, Math.floor((new Date() - new Date('2025-12-31')) / (1000*60*60*24)));
+  return Math.max(1, Math.floor((new Date() - new Date('2025-12-01')) / (1000*60*60*24)));
 }
 
 function setPeriod(period) {
@@ -282,7 +282,7 @@ function setPeriod(period) {
   });
   document.getElementById('perfRange').textContent =
     period === 'inception' || period === 'ytd'
-      ? 'Dec 31, 2025 → Current'
+      ? 'Dec 1, 2025 → Current'
       : period === '3m' ? 'Last 3 months (estimated)' : 'Last 1 month (estimated)';
   renderPerformance();
 }
@@ -332,7 +332,7 @@ function renderPerfChart(frac) {
   if (perfChart) perfChart.destroy();
 
   // Generate interpolated data points from inception to now
-  const inception = new Date('2025-12-31');
+  const inception = new Date('2025-12-01');
   const now = new Date();
   const totalDays = Math.max(1, (now - inception) / (1000*60*60*24));
   const numPoints = Math.min(Math.ceil(totalDays), 60);
@@ -410,7 +410,7 @@ function renderTopMoversChart(frac) {
 }
 
 function renderMonthlyTable() {
-  const inception = new Date('2025-12-31');
+  const inception = new Date('2025-12-01');
   const now = new Date();
   const months = [];
   let d = new Date(inception);
@@ -454,7 +454,7 @@ function renderMonthlyTable() {
       <td>Total</td>
       <td class="${totalPL>=0?'gain':'loss'}">${totalPL>=0?'+':''}$${(totalPL/1e3).toFixed(0)}K</td>
       <td class="${totalPLPct>=0?'gain':'loss'}">${totalPLPct>=0?'+':''}${totalPLPct.toFixed(2)}%</td>
-      <td style="color:var(--muted)">Dec 31, 2025 → Now</td>
+      <td style="color:var(--muted)">Dec 1, 2025 → Now</td>
     </tr>
     </tbody>
   `;
