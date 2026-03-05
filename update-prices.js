@@ -13,6 +13,7 @@ function fetch(url) {
 
 async function getPrice(ticker) {
   try {
+    // Monthly data
     const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=6mo&interval=1mo&includePrePost=false`;
     const resp = await fetch(url);
     if (!resp.ok) return null;
@@ -27,8 +28,29 @@ async function getPrice(ticker) {
       const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
       history[key] = closes[i];
     });
+
+    // Daily data for prev close and week-ago
+    let prevClose = null, weekAgo = null;
+    try {
+      const dUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=10d&interval=1d&includePrePost=false`;
+      const dResp = await fetch(dUrl);
+      if (dResp.ok) {
+        const dData = dResp.json();
+        const dResult = dData?.chart?.result?.[0];
+        if (dResult) {
+          const dCloses = dResult.indicators?.quote?.[0]?.close || [];
+          const valid = dCloses.filter(c => c !== null);
+          if (valid.length >= 2) prevClose = valid[valid.length - 2];
+          if (valid.length >= 6) weekAgo = valid[valid.length - 6];
+          else if (valid.length >= 2) weekAgo = valid[0];
+        }
+      }
+    } catch(e) {}
+
     return {
       current: result.meta?.regularMarketPrice,
+      prevClose,
+      weekAgo,
       dec: history['2025-12'] || null,
       jan: history['2026-01'] || null,
       feb: history['2026-02'] || null,
