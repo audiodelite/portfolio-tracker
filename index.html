@@ -738,41 +738,59 @@ function exportCSV() {
 window.exportCSV = exportCSV;
 
 // Refresh prices
+async function fetchWithProxy(ticker) {
+  const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=1d&interval=1d`;
+  const proxies = [
+    url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+  ];
+  for (const proxy of proxies) {
+    try {
+      const resp = await fetch(proxy(yahooUrl), { signal: AbortSignal.timeout(6000) });
+      if (!resp.ok) continue;
+      const data = await resp.json();
+      const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
+      if (price) return price;
+    } catch(e) {}
+  }
+  return null;
+}
+
 async function refreshPrices() {
   const btn = document.getElementById('refreshBtn');
   btn.disabled = true;
-  btn.textContent = '⏳ Refreshing…';
-
-  const tickers = positions.filter(p => p.currentPrice !== null).map(p => p.ticker);
+  const allTickers = positions.filter(p => p.currentPrice !== null).map(p => p.ticker);
   let updated = 0;
+  const total = allTickers.length;
 
-  for (const ticker of tickers) {
-    try {
-      const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=1d&interval=1d`)}`;
-      const resp = await fetch(url, { signal: AbortSignal.timeout(5000) });
-      if (!resp.ok) continue;
-      const data = await resp.json();
-      const meta = data?.chart?.result?.[0]?.meta;
-      if (meta?.regularMarketPrice) {
-        const pos = positions.find(p => p.ticker === ticker);
-        if (pos) {
-          pos.currentPrice = meta.regularMarketPrice;
-          if (pos.costBasis !== null) {
-            pos.plDollar = (pos.currentPrice - pos.costBasis) * pos.shares;
-            pos.plPct = ((pos.currentPrice - pos.costBasis) / pos.costBasis) * 100;
-          }
-          if (monthlyPrices[ticker]) monthlyPrices[ticker].current = meta.regularMarketPrice;
-          updated++;
+  // Process in batches of 5
+  for (let i = 0; i < total; i += 5) {
+    const batch = allTickers.slice(i, i + 5);
+    btn.textContent = `⏳ ${Math.min(i + 5, total)}/${total}…`;
+    const results = await Promise.all(batch.map(t => fetchWithProxy(t)));
+    batch.forEach((ticker, idx) => {
+      const price = results[idx];
+      if (!price) return;
+      const pos = positions.find(p => p.ticker === ticker);
+      if (pos) {
+        pos.currentPrice = price;
+        if (pos.costBasis !== null) {
+          pos.plDollar = (price - pos.costBasis) * pos.shares;
+          pos.plPct = ((price - pos.costBasis) / pos.costBasis) * 100;
         }
+        if (monthlyPrices[ticker]) monthlyPrices[ticker].current = price;
+        updated++;
       }
-    } catch(e) {}
+    });
   }
 
-  btn.textContent = updated > 0 ? `✅ Updated ${updated} prices` : '⚠️ Could not fetch (CORS)';
+  btn.textContent = updated > 0 ? `✅ Updated ${updated} prices` : '⚠️ Could not fetch prices';
   btn.disabled = false;
-  setTimeout(() => { btn.textContent = '🔄 Refresh Prices'; }, 3000);
+  setTimeout(() => { btn.textContent = '🔄 Refresh Prices'; }, 4000);
 
   if (updated > 0) {
+    document.getElementById('ts').textContent = new Date().toISOString();
     renderPerformance();
     render();
     renderTreemap();
